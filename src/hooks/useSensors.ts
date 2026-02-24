@@ -1,0 +1,153 @@
+import { useState, useEffect, useCallback } from 'react';
+import { db, collection, query, onSnapshot, getDocs } from '@/config/firebase';
+import type { SensorData } from '@/types/sensor';
+import { isAfter, subHours } from 'date-fns';
+
+// Demo sensor data for when Firebase is not configured
+const DEMO_SENSORS: SensorData[] = [
+  {
+    id: 'sensor-001',
+    name: 'Main Water Line',
+    location: { lat: 37.7749, lng: -122.4194 },
+    lastFlowDetected: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
+    flowDetected: true,
+    status: 'online',
+    batteryLevel: 85,
+  },
+  {
+    id: 'sensor-002',
+    name: 'Garden Irrigation',
+    location: { lat: 37.7849, lng: -122.4094 },
+    lastFlowDetected: new Date(Date.now() - 1000 * 60 * 60 * 25), // 25 hours ago
+    flowDetected: false,
+    status: 'online',
+    batteryLevel: 62,
+  },
+  {
+    id: 'sensor-003',
+    name: 'Basement Leak Detector',
+    location: { lat: 37.7649, lng: -122.4294 },
+    lastFlowDetected: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
+    flowDetected: true,
+    status: 'warning',
+    batteryLevel: 45,
+  },
+];
+
+export function useSensors() {
+  const [sensors, setSensors] = useState<SensorData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [usingDemoData, setUsingDemoData] = useState(false);
+
+  const checkFlowInLast24Hours = useCallback((lastFlowDate: Date | null): boolean => {
+    if (!lastFlowDate) return false;
+    const twentyFourHoursAgo = subHours(new Date(), 24);
+    return isAfter(lastFlowDate, twentyFourHoursAgo);
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+
+    // Check if Firebase is properly configured
+    const isFirebaseConfigured = 
+      import.meta.env.VITE_FIREBASE_API_KEY && 
+      import.meta.env.VITE_FIREBASE_API_KEY !== '';
+
+    if (!isFirebaseConfigured) {
+      console.log('Firebase not configured, using demo data');
+      setSensors(DEMO_SENSORS);
+      setUsingDemoData(true);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // Query for sensors collection
+      const sensorsRef = collection(db, 'TestData');
+      const sensorsQuery = query(sensorsRef);
+
+      const unsubscribe = onSnapshot(
+        sensorsQuery,
+        (snapshot) => {
+          const sensorsData: SensorData[] = [];
+
+          snapshot.forEach((doc) => {
+            const data = doc.data();
+            const lastFlowDate = data.lastFlowDetected?.toDate?.() || 
+                                (data.lastFlowDetected ? new Date(data.lastFlowDetected) : null);
+            
+            sensorsData.push({
+              id: doc.id,
+              name: data.name || `Sensor ${doc.id}`,
+              location: {
+                lat: data.location?.lat || 0,
+                lng: data.location?.lng || 0,
+              },
+              lastFlowDetected: lastFlowDate,
+              flowDetected: checkFlowInLast24Hours(lastFlowDate),
+              status: data.status || 'offline',
+              batteryLevel: data.batteryLevel,
+            });
+          });
+
+          setSensors(sensorsData);
+          setLoading(false);
+        },
+        (err) => {
+          console.error('Error fetching sensors:', err);
+          setError('Failed to fetch sensor data. Using demo data.');
+          setSensors(DEMO_SENSORS);
+          setUsingDemoData(true);
+          setLoading(false);
+        }
+      );
+
+      return () => unsubscribe();
+    } catch (err) {
+      console.error('Error setting up Firestore listener:', err);
+      setError('Failed to connect to Firestore. Using demo data.');
+      setSensors(DEMO_SENSORS);
+      setUsingDemoData(true);
+      setLoading(false);
+    }
+  }, [checkFlowInLast24Hours]);
+
+  // Function to manually refresh sensor data
+  const refreshSensors = useCallback(async () => {
+    setLoading(true);
+    try {
+      const sensorsRef = collection(db, 'sensors');
+      const snapshot = await getDocs(sensorsRef);
+      
+      const sensorsData: SensorData[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        const lastFlowDate = data.lastFlowDetected?.toDate?.() || 
+                            (data.lastFlowDetected ? new Date(data.lastFlowDetected) : null);
+        
+        sensorsData.push({
+          id: doc.id,
+          name: data.name || `Sensor ${doc.id}`,
+          location: {
+            lat: data.location?.lat || 0,
+            lng: data.location?.lng || 0,
+          },
+          lastFlowDetected: lastFlowDate,
+          flowDetected: checkFlowInLast24Hours(lastFlowDate),
+          status: data.status || 'online',
+          batteryLevel: data.batteryLevel,
+        });
+      });
+
+      setSensors(sensorsData);
+    } catch (err) {
+      console.error('Error refreshing sensors:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [checkFlowInLast24Hours]);
+
+  return { sensors, loading, error, usingDemoData, refreshSensors };
+}
