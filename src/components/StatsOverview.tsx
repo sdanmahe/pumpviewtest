@@ -23,7 +23,7 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ sensors }) => {
       bgColor: 'bg-blue-50',
     },
     {
-      label: 'Flow Detection (24h)',
+      label: 'Flow Detected (24h)',
       value: activeFlowSensors,
       icon: Droplets,
       color: 'bg-cyan-500',

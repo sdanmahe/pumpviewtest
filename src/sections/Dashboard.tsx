@@ -40,7 +40,7 @@ export const Dashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-green-300">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading sensor data...</p>
@@ -50,9 +50,9 @@ export const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-green-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-green-600 border-b border-gray-200 sticky top-0 z-10">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
@@ -60,8 +60,8 @@ export const Dashboard: React.FC = () => {
                 <Droplets className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white">Pumpview Monitor</h1>
-                <p className="text-xs text-white-100">Sensor Dashboard</p>
+                <h1 className="text-xl font-bold text-gray-900">Water Flow Monitor</h1>
+                <p className="text-xs text-gray-500">ESP8266 Sensor Dashboard</p>
               </div>
             </div>
 
@@ -238,7 +238,7 @@ VITE_GOOGLE_MAPS_API_KEY=your_maps_api_key`}
           <div className="flex flex-wrap gap-4 text-sm">
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-blue-500"></span>
-              <span className="text-gray-600">Water flow (24h)</span>
+              <span className="text-gray-600">Water flow detected (24h)</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-green-500"></span>

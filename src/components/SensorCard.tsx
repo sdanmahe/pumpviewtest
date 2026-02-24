@@ -1,7 +1,7 @@
 import React from 'react';
 import type { SensorData } from '@/types/sensor';
 import { Droplets, Clock, Battery, MapPin, Activity } from 'lucide-react';
-import { formatDistanceToNow, isValid } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
@@ -80,7 +80,7 @@ export const SensorCard: React.FC<SensorCardProps> = ({ sensor, onClick, isSelec
           <div className="flex items-center gap-2 text-gray-600">
             <Clock className="w-4 h-4 text-gray-400" />
             <span className="truncate">
-              {sensor.lastFlowDetected && isValid(sensor.lastFlowDetected)
+              {sensor.lastFlowDetected 
                 ? formatDistanceToNow(sensor.lastFlowDetected, { addSuffix: true })
                 : 'Never'}
             </span>

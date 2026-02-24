@@ -65,7 +65,7 @@ export function useSensors() {
 
     try {
       // Query for sensors collection
-      const sensorsRef = collection(db, 'TestData');
+         const sensorsRef = collection(db,  `${import.meta.env.VITE_FIREBASE_COLLECTION_NAME || 'sensors'}`);
       const sensorsQuery = query(sensorsRef);
 
       const unsubscribe = onSnapshot(
@@ -87,7 +87,7 @@ export function useSensors() {
               },
               lastFlowDetected: lastFlowDate,
               flowDetected: checkFlowInLast24Hours(lastFlowDate),
-              status: data.status || 'offline',
+              status: data.status || 'online',
               batteryLevel: data.batteryLevel,
             });
           });

@@ -27,10 +27,6 @@ const mapOptions = {
   fullscreenControl: true,
 };
 
-// Keep libraries array as a static constant to avoid recreating it on each render
-// Include 'marker' so the AdvancedMarkerElement APIs are available for migration
-const googleMapsLibraries: ('places' | 'marker')[] = ['places', 'marker'];
-
 // Water droplet SVG icon as data URI
 const getWaterDropIcon = (color: string) => {
   const svg = `
@@ -65,7 +61,7 @@ const getMarkerIcon = (flowDetected: boolean, status: string) => {
   // Different colors for different statuses
   if (status === 'offline') return getWaterDropIcon('#9CA3AF'); // Gray
   if (flowDetected) return getWaterDropIcon('#3B82F6'); // Blue
-  return getWaterDropIcon('#EF4444'); // red
+  return getWaterDropIcon('#22C55E'); // Green
 };
 
 export const SensorMap: React.FC<SensorMapProps> = ({ sensors, apiKey }) => {
@@ -73,7 +69,7 @@ export const SensorMap: React.FC<SensorMapProps> = ({ sensors, apiKey }) => {
 
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: apiKey || '',
-    libraries: googleMapsLibraries,
+    libraries: ['places'],
   });
 
   const onMapLoad = useCallback((map: google.maps.Map) => {
