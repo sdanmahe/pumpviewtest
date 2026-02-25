@@ -26,6 +26,8 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 
+import pumpviewLogo from '@/assets/pumpview_logo.png';
+
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 
 export const Dashboard: React.FC = () => {
@@ -43,7 +45,7 @@ export const Dashboard: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading sensor data...</p>
+          <p className="text-gray-600">Loading sensors data...</p>
         </div>
       </div>
     );
@@ -54,14 +56,18 @@ export const Dashboard: React.FC = () => {
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-20">
             <div className="flex items-center gap-3">
-              <div className="bg-blue-600 p-2 rounded-lg">
-                <Droplets className="w-6 h-6 text-white" />
+              <div className=" p-2 rounded-lg">
+               
+                <a href="https://pumpviewlogos.com" target="_blank" >
+                <img src={pumpviewLogo} alt="Pumpview Logo" className="w-16 h-20" />
+                </a>
+
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Water Flow Monitor</h1>
-                <p className="text-xs text-gray-500">ESP8266 Sensor Dashboard</p>
+                <h1 className="text-xl font-bold text-gray-900">Pumpview Water Monitor</h1>
+                <p className="text-xs text-gray-500">Sensors Dashboard</p>
               </div>
             </div>
 
