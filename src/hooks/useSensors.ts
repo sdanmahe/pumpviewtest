@@ -6,18 +6,18 @@ import { isAfter, subHours } from 'date-fns';
 // Demo sensor data for when Firebase is not configured
 const DEMO_SENSORS: SensorData[] = [
   {
-    id: 'sensor-001',
-    name: 'Main Water Line',
-    location: { lat: 37.7749, lng: -122.4194 },
+    id: 'S01T01D001',
+    name: 'Demo Sensor 1',
+    location: { lat: 12.6921, lng: 5.0043 },
     lastFlowDetected: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
     flowDetected: true,
     status: 'online',
     batteryLevel: 85,
   },
   {
-    id: 'sensor-002',
-    name: 'Garden Irrigation',
-    location: { lat: 37.7849, lng: -122.4094 },
+    id: 'S01T02D001',
+    name: 'Demo Sensor 2',
+    location: { lat: 13.4694, lng: 5.1435 },
     lastFlowDetected: new Date(Date.now() - 1000 * 60 * 60 * 25), // 25 hours ago
     flowDetected: false,
     status: 'online',
@@ -26,7 +26,7 @@ const DEMO_SENSORS: SensorData[] = [
   {
     id: 'sensor-003',
     name: 'Basement Leak Detector',
-    location: { lat: 37.7649, lng: -122.4294 },
+    location: { lat: 12.1810, lng: 4.0926 },
     lastFlowDetected: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
     flowDetected: true,
     status: 'warning',
@@ -118,7 +118,7 @@ export function useSensors() {
   const refreshSensors = useCallback(async () => {
     setLoading(true);
     try {
-      const sensorsRef = collection(db, 'sensors');
+      const sensorsRef = collection(db, `${import.meta.env.VITE_FIREBASE_COLLECTION_NAME || 'sensors'}`);
       const snapshot = await getDocs(sensorsRef);
       
       const sensorsData: SensorData[] = [];
