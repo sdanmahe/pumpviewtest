@@ -26,6 +26,8 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 
+import UserLogin from '@/components/userLoggin';
+
 import pumpviewLogo from '@/assets/pumpview_logo.png';
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
@@ -60,13 +62,13 @@ export const Dashboard: React.FC = () => {
             <div className="flex items-center gap-3">
               <div className=" p-2 rounded-lg">
                
-                <a href="https://pumpviewlogos.com" target="_blank" >
+                <a href="https://pumpview.com" target="_blank" rel="noopener noreferrer">
                 <img src={pumpviewLogo} alt="Pumpview Logo" className="w-16 h-20" />
                 </a>
 
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Pumpview Water Monitor</h1>
+                <h1 className="text-xl font-bold text-gray-900">Pumpview Water Monitoring</h1>
                 <p className="text-xs text-gray-500">Sensors Dashboard</p>
               </div>
             </div>
@@ -118,28 +120,13 @@ export const Dashboard: React.FC = () => {
                     <Settings className="w-4 h-4" />
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>Configuration</DialogTitle>
-                    <DialogDescription>
-                      Configure your Firebase and Google Maps API keys
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="firebase-config">Firebase Config</Label>
-                      <p className="text-sm text-gray-500">
-                        Set these environment variables in your <code>.env</code> file:
-                      </p>
-                      <pre className="bg-gray-100 p-3 rounded text-xs overflow-x-auto">
-{`VITE_FIREBASE_API_KEY=your_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain
-VITE_FIREBASE_PROJECT_ID=your_project_id
-VITE_GOOGLE_MAPS_API_KEY=your_maps_api_key`}
-                      </pre>
-                    </div>
-                  </div>
-                </DialogContent>
+                <div id="user-login-section" className="p-4">
+                  <DialogContent className="sm:max-w-lg  w-full">
+                   
+                    <UserLogin />
+                  </DialogContent>
+                </div>
+              
               </Dialog>
             </div>
           </div>
