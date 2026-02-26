@@ -1,6 +1,6 @@
 import React from 'react';
 import type { SensorData } from '@/types/sensor';
-import { Droplets, Clock, Battery, MapPin, Activity } from 'lucide-react';
+import { Droplets, Clock, Cylinder, MapPin, Activity } from 'lucide-react';
 import { formatDistanceToNow, differenceInDays } from 'date-fns';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,8 +19,8 @@ export const SensorCard: React.FC<SensorCardProps> = ({ sensor, onClick, isSelec
 
 // Calculate if 3+ days have passed since last flow detection
 const isThreeOrMoreDaysAgo = sensor.lastFlowDetected 
-  ? differenceInDays(new Date(), new Date(sensor.lastFlowDetected)) >= 3
-  : false; // If no lastFlowDetected, consider it inactive or handle as needed
+  ? differenceInDays(new Date(), new Date(sensor.lastFlowDetected)) >= 3 ? true:false
+  : 'Never'; // If no lastFlowDetected, consider it inactive or handle as needed
 
 // Set sensor status based on flow detection age
 const sensorStatus = isThreeOrMoreDaysAgo ? 'Inactive' : 'Active';
@@ -65,7 +65,7 @@ const getStatusColor = (status: string) => {
               <Droplets className={`w-5 h-5 ${sensor.flowDetected ? 'text-blue-600' : 'text-gray-500'}`} />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">{sensor.name}</h3>
+              <h3 className="font-semibold text-gray-900">{sensor.name + `  (${sensor.state} State/${sensor.lga} LGA)`}</h3>
               <p className="text-xs text-gray-500">ID: {sensor.id}</p>
             </div>
           </div>
@@ -77,7 +77,7 @@ const getStatusColor = (status: string) => {
 
       <CardContent className="pt-0">
         {/* Flow Status - Main Indicator */}
-        <div className={`p-3 rounded-lg border mb-3 ${sensor.status.includes('warning')? 'bg-yellow-50 border-red-200 text-red-800' : getFlowStatusColor(sensor.flowDetected)}`}>
+        <div className={`p-3 rounded-lg border mb-3 ${sensor.status.includes('warning')? 'bg-yellow-50 border-red-200 text-yellow-600' : getFlowStatusColor(sensor.flowDetected)}`}>
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4" />
             <span className="font-medium text-sm">
@@ -101,10 +101,10 @@ const getStatusColor = (status: string) => {
           </div>
 
           {/* Battery */}
-          {sensor.batteryLevel !== undefined && (
+          {sensor.tankLevel !== undefined && (
             <div className="flex items-center gap-2 text-gray-600">
-              <Battery className={`w-4 h-4 ${getBatteryColor(sensor.batteryLevel)}`} />
-              <span>{sensor.batteryLevel}%</span>
+              <Cylinder className={`w-4 h-4 ${getBatteryColor(sensor.tankLevel)}`} />
+              <span>{sensor.tankLevel}%</span>
             </div>
           )}
 

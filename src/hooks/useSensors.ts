@@ -12,7 +12,9 @@ const DEMO_SENSORS: SensorData[] = [
     lastFlowDetected: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
     flowDetected: true,
     status: 'Active',
-    batteryLevel: 85,
+    tankLevel: 85,
+    state: 'Sokoto',
+    lga: 'Yabo',
   },
   {
     id: 'S01T02D001',
@@ -21,7 +23,9 @@ const DEMO_SENSORS: SensorData[] = [
     lastFlowDetected: new Date(Date.now() - 1000 * 60 * 60 * 25), // 25 hours ago
     flowDetected: false,
     status: 'Active',
-    batteryLevel: 62,
+    tankLevel: 62,
+    state: 'Sokoto',
+    lga: 'Yabo',
   },
   {
     id: 'sensor-003',
@@ -30,7 +34,9 @@ const DEMO_SENSORS: SensorData[] = [
     lastFlowDetected: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
     flowDetected: true,
     status: 'warning',
-    batteryLevel: 45,
+    tankLevel: 45,
+    state: 'Sokoto',
+    lga: 'Yabo',
   },
 ];
 
@@ -87,8 +93,10 @@ export function useSensors() {
               },
               lastFlowDetected: lastFlowDate,
               flowDetected: checkFlowInLast24Hours(lastFlowDate),
-              status: data.status || 'Active',
-              batteryLevel: data.batteryLevel,
+              status: data.status || 'Not set',
+              tankLevel: data.tankLevel,
+              state: data.state,
+              lga: data.lga,
             });
           });
 
@@ -136,8 +144,10 @@ export function useSensors() {
           },
           lastFlowDetected: lastFlowDate,
           flowDetected: checkFlowInLast24Hours(lastFlowDate),
-          status: data.status || 'Active',
-          batteryLevel: data.batteryLevel,
+          status: data.status || 'Not set',
+          tankLevel: data.tankLevel,
+          state: data.state,
+          lga: data.lga,
         });
       });
 

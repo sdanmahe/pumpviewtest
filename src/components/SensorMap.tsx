@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
 import type { SensorData } from '@/types/sensor';
-import { Droplets, Clock, Battery, MapPin } from 'lucide-react';
+import { Droplets, Clock, Cylinder, MapPin } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface SensorMapProps {
@@ -172,15 +172,15 @@ export const SensorMap: React.FC<SensorMapProps> = ({ sensors, apiKey }) => {
                 </div>
               )}
 
-              {/* Battery Level */}
-              {selectedSensor.batteryLevel !== undefined && (
+              {/* Cylinder Level */}
+              {selectedSensor.tankLevel !== undefined && (
                 <div className="flex items-center gap-2">
-                  <Battery className={`w-4 h-4 ${
-                    selectedSensor.batteryLevel > 50 ? 'text-green-500' : 
-                    selectedSensor.batteryLevel > 20 ? 'text-yellow-500' : 'text-red-500'
+                  <Cylinder className={`w-4 h-4 ${
+                    selectedSensor.tankLevel > 50 ? 'text-green-500' : 
+                    selectedSensor.tankLevel > 20 ? 'text-yellow-500' : 'text-red-500'
                   }`} />
                   <span className="text-sm text-gray-600">
-                    Battery: {selectedSensor.batteryLevel}%
+                    Tank Level: {selectedSensor.tankLevel}%
                   </span>
                 </div>
               )}
