@@ -1,9 +1,13 @@
 import React from 'react';
 import type { SensorData } from '@/types/sensor';
 import { Droplets, Clock, Battery, MapPin, Activity } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, differenceInDays } from 'date-fns';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+
+
+
+
 
 interface SensorCardProps {
   sensor: SensorData;
@@ -12,18 +16,28 @@ interface SensorCardProps {
 }
 
 export const SensorCard: React.FC<SensorCardProps> = ({ sensor, onClick, isSelected }) => {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Active':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'warning':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'Inactive':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
+
+// Calculate if 3+ days have passed since last flow detection
+const isThreeOrMoreDaysAgo = sensor.lastFlowDetected 
+  ? differenceInDays(new Date(), new Date(sensor.lastFlowDetected)) >= 3
+  : false; // If no lastFlowDetected, consider it inactive or handle as needed
+
+// Set sensor status based on flow detection age
+const sensorStatus = isThreeOrMoreDaysAgo ? 'Inactive' : 'Active';
+
+// Function to get status color classes
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'warning':
+      return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+    case 'Active':
+      return 'bg-green-100 text-green-800 border-green-200';
+    case 'Inactive':
+      return 'bg-gray-100 text-gray-800 border-gray-200';
+    default:
+      return 'bg-gray-100 text-gray-800 border-gray-200';
+  }
+};
 
   const getBatteryColor = (level: number) => {
     if (level > 50) return 'text-green-500';
@@ -55,21 +69,21 @@ export const SensorCard: React.FC<SensorCardProps> = ({ sensor, onClick, isSelec
               <p className="text-xs text-gray-500">ID: {sensor.id}</p>
             </div>
           </div>
-          <Badge variant="outline" className={getStatusColor(sensor.status)}>
-            {sensor.status}
+          <Badge variant="outline" className={getStatusColor(sensor.status.includes('warning')? 'warning': sensorStatus)}>
+            {sensor.status.includes('warning')? 'warning': sensorStatus}
           </Badge>
         </div>
       </CardHeader>
 
       <CardContent className="pt-0">
         {/* Flow Status - Main Indicator */}
-        <div className={`p-3 rounded-lg border mb-3 ${getFlowStatusColor(sensor.flowDetected)}`}>
+        <div className={`p-3 rounded-lg border mb-3 ${sensor.status.includes('warning')? 'bg-yellow-50 border-red-200 text-red-800' : getFlowStatusColor(sensor.flowDetected)}`}>
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4" />
             <span className="font-medium text-sm">
               {sensor.flowDetected 
-                ? 'Water flow detected within 24 hours' 
-                : 'No water flow in last 24 hours'}
+                ?sensor.status.includes('warning')? sensor.status: 'Water flow detected within 24 hours' 
+                : sensor.status.includes('warning')? sensor.status: 'No water flow in last 24 hours'}
             </span>
           </div>
         </div>
