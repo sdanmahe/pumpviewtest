@@ -7,7 +7,7 @@ export interface SensorData {
   };
   lastFlowDetected: Date | null;
   flowDetected: boolean;
-  status: 'online' | 'offline' | 'warning';
+  status: 'Active' | 'Inactive' | 'warning';
   batteryLevel?: number;
 }
 

@@ -10,7 +10,7 @@ interface StatsOverviewProps {
 export const StatsOverview: React.FC<StatsOverviewProps> = ({ sensors }) => {
   const totalSensors = sensors.length;
   const activeFlowSensors = sensors.filter(s => s.flowDetected).length;
-  const onlineSensors = sensors.filter(s => s.status === 'online').length;
+  const onlineSensors = sensors.filter(s => s.status === 'Active').length;
   const warningSensors = sensors.filter(s => s.status === 'warning').length;
 
   const stats = [
@@ -31,7 +31,7 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ sensors }) => {
       bgColor: 'bg-cyan-50',
     },
     {
-      label: 'Online',
+      label: 'Active',
       value: onlineSensors,
       icon: CheckCircle,
       color: 'bg-green-500',

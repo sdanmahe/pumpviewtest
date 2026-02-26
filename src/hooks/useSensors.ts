@@ -11,7 +11,7 @@ const DEMO_SENSORS: SensorData[] = [
     location: { lat: 12.6921, lng: 5.0043 },
     lastFlowDetected: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
     flowDetected: true,
-    status: 'online',
+    status: 'Active',
     batteryLevel: 85,
   },
   {
@@ -20,7 +20,7 @@ const DEMO_SENSORS: SensorData[] = [
     location: { lat: 13.4694, lng: 5.1435 },
     lastFlowDetected: new Date(Date.now() - 1000 * 60 * 60 * 25), // 25 hours ago
     flowDetected: false,
-    status: 'online',
+    status: 'Active',
     batteryLevel: 62,
   },
   {
@@ -87,7 +87,7 @@ export function useSensors() {
               },
               lastFlowDetected: lastFlowDate,
               flowDetected: checkFlowInLast24Hours(lastFlowDate),
-              status: data.status || 'online',
+              status: data.status || 'Active',
               batteryLevel: data.batteryLevel,
             });
           });
@@ -136,7 +136,7 @@ export function useSensors() {
           },
           lastFlowDetected: lastFlowDate,
           flowDetected: checkFlowInLast24Hours(lastFlowDate),
-          status: data.status || 'online',
+          status: data.status || 'Active',
           batteryLevel: data.batteryLevel,
         });
       });

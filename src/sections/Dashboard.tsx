@@ -241,7 +241,7 @@ export const Dashboard: React.FC = () => {
             </div>
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-gray-500"></span>
-              <span className="text-gray-600">Offline</span>
+              <span className="text-gray-600">Inactive</span>
             </div>
           </div>
         </div>

@@ -59,7 +59,7 @@ const getWaterDropIcon = (color: string) => {
 // Custom marker icons based on flow status - water droplet icons
 const getMarkerIcon = (flowDetected: boolean, status: string) => {
   // Different colors for different statuses
-  if (status === 'offline') return getWaterDropIcon('#9CA3AF'); // Gray
+  if (status === 'Inactive') return getWaterDropIcon('#9CA3AF'); // Gray
   if (flowDetected) return getWaterDropIcon('#3B82F6'); // Blue
   return getWaterDropIcon('#22C55E'); // Green
 };
@@ -187,7 +187,7 @@ export const SensorMap: React.FC<SensorMapProps> = ({ sensors, apiKey }) => {
               {/* Status Badge */}
               <div className="mt-2">
                 <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                  selectedSensor.status === 'online' ? 'bg-green-100 text-green-800' :
+                  selectedSensor.status === 'Active' ? 'bg-green-100 text-green-800' :
                   selectedSensor.status === 'warning' ? 'bg-yellow-100 text-yellow-800' :
                   'bg-gray-100 text-gray-800'
                 }`}>
