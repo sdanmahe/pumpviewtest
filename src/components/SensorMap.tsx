@@ -59,6 +59,7 @@ const getWaterDropIcon = (color: string) => {
 // Custom marker icons based on flow status - water droplet icons
 const getMarkerIcon = (flowDetected: boolean, status: string) => {
   // Different colors for different statuses
+  if(status.includes('warning')) return getWaterDropIcon('#F59E0B '); // yellow
   if (status === 'Inactive') return getWaterDropIcon('#9CA3AF'); // Gray
   if (flowDetected) return getWaterDropIcon('#3B82F6'); // Blue
   return getWaterDropIcon('#22C55E'); // Green
