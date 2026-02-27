@@ -36,16 +36,14 @@ const LandingPage: React.FC = () => {
   <section className="relative h-[600px] overflow-hidden">
     {/* Background Image */}
     <div 
-      className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105 hover:scale-100 transition-transform duration-7000"
+      className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105 hover:scale-100 transition-transform duration-7000 "
       style={{ 
         backgroundImage: `url(${pumpviwBG})`,
       }}
+      
     />
-    
     {/* Gradient Overlay */}
     <div className="absolute inset-0 bg-gradient-to-r from-green-900/90 via-green-800/70 to-transparent" />
-    
-    
     {/* Hero Content */}
     <div className="relative z-10 h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center">
       <div className="text-white max-w-2xl">
