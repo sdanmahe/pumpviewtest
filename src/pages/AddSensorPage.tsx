@@ -262,7 +262,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                   <div>
                     <Label htmlFor="phoneNo">Phone No</Label>
                     <div className="relative">
-                      <Droplets className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                      <Phone className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
                       <Input
                         id="phoneNo"
                         name="phoneNo"
