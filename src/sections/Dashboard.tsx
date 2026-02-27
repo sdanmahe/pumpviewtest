@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// src/sections/Dashboard.tsx
+import React, { useState, useEffect } from 'react';
 import type { SensorData } from '@/types/sensor';
 import { useSensors } from '@/hooks/useSensors';
 import { SensorMap } from '@/components/SensorMap';
@@ -10,20 +11,15 @@ import {
   RefreshCw, 
   Map as MapIcon, 
   List, 
-  Settings, 
   Droplets,
   AlertCircle,
-  Info
+  Info,
+  LogOut,
+  User
 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { 
-  Dialog,  
-  DialogContent, 
-  DialogTrigger 
-} from '@/components/ui/dialog';
-
-
-import UserLogin from '@/components/userLoggin';
+import { Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 
 import pumpviewLogo from '@/assets/pumpview_logo.png';
 
@@ -33,10 +29,44 @@ export const Dashboard: React.FC = () => {
   const { sensors, loading, error, usingDemoData, refreshSensors } = useSensors();
   const [viewMode, setViewMode] = useState<'split' | 'map' | 'list'>('split');
   const [selectedSensorId, setSelectedSensorId] = useState<string | null>(null);
-  const [showSettings, setShowSettings] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showPublicNotice, setShowPublicNotice] = useState(true);
+  
+  const navigate = useNavigate();
+
+  // Check authentication status on component mount
+  useEffect(() => {
+    const authStatus = localStorage.getItem('isAuthenticated') === 'true' || 
+                      sessionStorage.getItem('isAuthenticated') === 'true';
+    setIsAuthenticated(authStatus);
+  }, []);
+
+  // Auto-hide public notice after 5 seconds
+  useEffect(() => {
+    if (!isAuthenticated) {
+      const timer = setTimeout(() => {
+        setShowPublicNotice(false);
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated]);
 
   const handleSensorClick = (sensor: SensorData) => {
     setSelectedSensorId(sensor.id === selectedSensorId ? null : sensor.id);
+  };
+
+  const handleLogout = () => {
+    // Clear authentication
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('userEmail');
+    sessionStorage.removeItem('isAuthenticated');
+    
+    // Update state
+    setIsAuthenticated(false);
+    
+    // Optional: Show success message or redirect
+    navigate('/');
   };
 
   if (loading) {
@@ -58,12 +88,10 @@ export const Dashboard: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center gap-3">
-              <div className=" p-2 rounded-lg">
-               
-                <a href="https://pumpview.com" target="_blank" rel="noopener noreferrer">
-                <img src={pumpviewLogo} alt="Pumpview Logo" className="w-16 h-20" />
-                </a>
-
+              <div className="p-2 rounded-lg">
+                <Link to="/">
+                  <img src={pumpviewLogo} alt="Pumpview Logo" className="w-16 h-20" />
+                </Link>
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">Pumpview Water Monitoring</h1>
@@ -101,31 +129,54 @@ export const Dashboard: React.FC = () => {
                 </Button>
               </div>
 
+              {/* Conditional rendering based on authentication */}
+              {isAuthenticated ? (
+                <>
+                  {/* Add Sensor Button - Only for authenticated users */}
+                  <Link to="/add-sensor">
+                    <Button variant="default" className="bg-blue-600 hover:bg-blue-700 gap-2">
+                      <Droplets className="w-4 h-4" />
+                      Add Sensor
+                    </Button>
+                  </Link>
+
+                  {/* User info and logout */}
+                  <div className="flex items-center gap-2 ml-2 pl-2 border-l border-gray-200">
+                    <div className="hidden sm:flex items-center gap-1 text-sm text-gray-600">
+                      <User className="w-4 h-4" />
+                      <span>Admin</span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleLogout}
+                      className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span className="hidden sm:inline">Logout</span>
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                /* Login Button - For public users */
+                <Link to="/login">
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <User className="w-4 h-4" />
+                    Admin Login
+                  </Button>
+                </Link>
+              )}
+
               {/* Refresh Button */}
               <Button
                 variant="outline"
                 size="icon"
                 onClick={refreshSensors}
                 disabled={loading}
+                title="Refresh sensor data"
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               </Button>
-
-              {/* Settings Dialog */}
-              <Dialog open={showSettings} onOpenChange={setShowSettings}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <Settings className="w-4 h-4" />
-                  </Button>
-                </DialogTrigger>
-                <div id="user-login-section" className="p-4">
-                  <DialogContent className="sm:max-w-lg  w-full">
-                   
-                    <UserLogin />
-                  </DialogContent>
-                </div>
-              
-              </Dialog>
             </div>
           </div>
         </div>
@@ -153,6 +204,30 @@ export const Dashboard: React.FC = () => {
             </AlertDescription>
           </Alert>
         )}
+
+        {/* Public Access Notice with Framer Motion Animation */}
+        <AnimatePresence>
+          {!isAuthenticated && showPublicNotice && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Alert className="mb-6 bg-green-50 border-green-200">
+                <Info className="h-4 w-4 text-green-600" />
+                <AlertTitle className="text-green-800">Public Dashboard</AlertTitle>
+                <AlertDescription className="text-green-700">
+                  You are viewing the dashboard in read-only mode.{' '}
+                  <Link to="/login" className="font-medium underline underline-offset-2">
+                    Login as admin
+                  </Link>{' '}
+                  to add or manage sensors.
+                </AlertDescription>
+              </Alert>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Stats Overview */}
         <div className="mb-6">
@@ -207,6 +282,13 @@ export const Dashboard: React.FC = () => {
                     <p className="text-sm text-gray-400 mt-1">
                       Add sensors to your Firestore database to see them here
                     </p>
+                    {!isAuthenticated && (
+                      <Link to="/login">
+                        <Button variant="outline" size="sm" className="mt-4">
+                          Login to Add Sensors
+                        </Button>
+                      </Link>
+                    )}
                   </div>
                 ) : (
                   sensors.map((sensor) => (
@@ -244,6 +326,11 @@ export const Dashboard: React.FC = () => {
               <span className="text-gray-600">Inactive</span>
             </div>
           </div>
+        </div>
+
+        {/* Footer Note */}
+        <div className="mt-4 text-center text-xs text-gray-400">
+          <p>© 2026 Pumpview Water Monitoring System. All rights reserved.</p>
         </div>
       </main>
     </div>

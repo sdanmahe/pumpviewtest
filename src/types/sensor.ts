@@ -8,9 +8,12 @@ export interface SensorData {
   lastFlowDetected: Date | null;
   flowDetected: boolean;
   status: 'Active' | 'Inactive' | 'warning';
-  tankLevel?: number;
+  tankLevel: number;
   state: string;
   lga: string;
+  owner: String;
+  type: String;
+  capacity: String;
 }
 
 export interface FirestoreSensorReading {

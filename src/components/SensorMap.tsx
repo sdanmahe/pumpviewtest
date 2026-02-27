@@ -184,6 +184,32 @@ export const SensorMap: React.FC<SensorMapProps> = ({ sensors, apiKey }) => {
                   </span>
                 </div>
               )}
+              {/* Capacity */}
+              {selectedSensor.capacity !== undefined && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">
+                    Storage Capacity: {selectedSensor.capacity} m<sup>3</sup>
+                  </span>
+                </div>
+              )}
+
+              {/* Bore Hole Type */}
+              {selectedSensor.type !== undefined && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">
+                    Borehole Type: {selectedSensor.type}
+                  </span>
+                </div>
+              )}
+              
+              {/* Ownership */}
+              {selectedSensor.owner !== undefined && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">
+                    Owner: {selectedSensor.owner}
+                  </span>
+                </div>
+              )}
 
               {/* Status Badge */}
               <div className="mt-2">
