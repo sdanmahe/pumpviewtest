@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Droplets, Mail, Lock, ArrowLeft, Eye, EyeOff, LogIn } from 'lucide-react';
 import pumpviewLogo from '@/assets/pumpview_logo.png';
+import pumpviwBG from '@/assets/pumpview_bg.png';
+
 
 // For demo purposes - in production, use proper authentication
 const DEMO_CREDENTIALS = {
@@ -74,7 +76,12 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex flex-col">
+      <div 
+      className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+      style={{ 
+        backgroundImage: `url(${pumpviwBG})`,
+      }} >
+     
       {/* Header with back button */}
       <div className="p-4">
         <Link to="/">
