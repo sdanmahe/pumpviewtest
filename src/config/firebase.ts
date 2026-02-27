@@ -4,12 +4,12 @@ import { getFirestore, collection, query, where, orderBy, limit, onSnapshot, Tim
 // Your Firebase configuration
 // Replace these with your actual Firebase config values
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyCUPtze-5dLtL3SSYB_K7PkMOdU9CQI6wg',
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'pumpview-test.firebaseapp.com',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'pumpview-test',
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'pumpview-test.firebasestorage.app',
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '989791719593',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:989791719593:web:f353636c49bd2f643459b8'
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || '',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || '',
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || '',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || ''
 };
 
 // Initialize Firebase
