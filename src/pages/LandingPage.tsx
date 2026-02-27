@@ -1,19 +1,22 @@
 // src/pages/LandingPage.tsx
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Droplets, Map, AlertCircle, Target, Users, ArrowRight } from 'lucide-react';
+import { Droplets, Map, AlertCircle, Target, Users} from 'lucide-react';
 import { Link } from 'react-router-dom';
-import pumpviewLogo from '@/assets/footer_logo.png';
+import pumpviewHeaderLogo from '@/assets/pumpview_logo.png';
+import pumpviewFooterLogo from '@/assets/footer_logo.png';
+
 
 const LandingPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+        
       {/* Navigation */}
       <nav className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center gap-3">
-              <img src='src/assets/pumpview_logo.png' alt="Pumpview Logo" className="w-16 h-20" />
+              <img src={pumpviewHeaderLogo} alt="Pumpview Logo" className="w-16 h-20" />
               <span className="text-xl font-bold text-gray-900">Pumpview</span>
             </div>
             <div className="flex gap-3">
@@ -28,30 +31,49 @@ const LandingPage: React.FC = () => {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="text-center">
-            <h1 className="text-5xl font-bold text-gray-900 mb-6">
-              Smart Water Monitoring
-              <span className="text-blue-600 block mt-2">for Sustainable Communities</span>
-            </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-              Real-time water flow monitoring and management system for municipal water tanks and pumps
-            </p>
-            <div className="flex gap-4 justify-center">
-              <Link to="/dashboard">
-                <Button size="lg" className="gap-2">
-                  View Live Dashboard <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
-              <Link to="/login">
-                <Button size="lg" variant="outline">Admin Access</Button>
-              </Link>
-            </div>
-          </div>
+  {/* Hero Section */}
+  <section className="relative h-[600px] overflow-hidden">
+    {/* Background Image */}
+    <div 
+      className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105 hover:scale-100 transition-transform duration-7000"
+      style={{ 
+        backgroundImage: "url('/src/assets/pumpview_bg.png')",
+      }}
+    />
+    
+    {/* Gradient Overlay */}
+    <div className="absolute inset-0 bg-gradient-to-r from-green-900/90 via-green-800/70 to-transparent" />
+    
+    
+    {/* Hero Content */}
+    <div className="relative z-10 h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center">
+      <div className="text-white max-w-2xl">
+        <h1 className="text-5xl md:text-6xl font-bold mb-4">
+          Pumpview Water Monitoring
+        </h1>
+        <p className="text-xl mb-8 text-blue-100">
+          Real-time water flow monitoring and management system for municipal water tanks and pumps
+        </p>
+        <div className="flex gap-4">
+         <Link to="/dashboard">
+          <Button size="lg" className="bg-white text-blue-900 hover:bg-blue-50">
+            View Dashboard
+          </Button></Link>
+          <Button size="lg" variant="outline" className="border-white text-blue-900 hover:bg-white/20">
+            Learn More
+          </Button>
         </div>
-      </section>
+      </div>
+    </div>
+    
+    {/* Wave Decoration */}
+    <div className="absolute bottom-0 left-0 right-0">
+      <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" 
+          className="fill-white"/>
+      </svg>
+    </div>
+  </section>
 
       {/* Problem Section */}
       <section className="bg-white py-20">
@@ -162,7 +184,7 @@ const LandingPage: React.FC = () => {
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <img src={pumpviewLogo} alt="Pumpview Logo" className="w-16 h-16 mx-auto mb-4" />
+            <img src={pumpviewFooterLogo} alt="Pumpview Logo" className="w-16 h-16 mx-auto mb-4" />
             <p className="text-gray-400">© 2026 Pumpview. All rights reserved.</p>
           </div>
         </div>
