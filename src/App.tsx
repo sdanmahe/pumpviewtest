@@ -1,5 +1,7 @@
 // src/App.tsx
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom'; // Change this
+// import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'; // Remove this
+
 import LandingPage from '@/pages/LandingPage';
 import Dashboard from '@/sections/Dashboard';
 import AddSensorPage from '@/pages/AddSensorPage';
@@ -8,14 +10,11 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 
 function App() {
   return (
-    <Router>
+    <Router> {/* Now using HashRouter */}
       <Routes>
-        {/* Public Routes */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/login" element={<LoginPage />} />
-        
-        {/* Protected Routes - Only add-sensor requires authentication */}
         <Route path="/add-sensor" element={
           <ProtectedRoute>
             <AddSensorPage />
