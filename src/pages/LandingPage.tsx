@@ -5,6 +5,7 @@ import { Droplets, Map, AlertCircle, Target, Users} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import pumpviewHeaderLogo from '@/assets/pumpview_logo.png';
 import pumpviewFooterLogo from '@/assets/footer_logo.png';
+import pumpviwBG from '@/assets/pumpview_bg.png';
 
 
 const LandingPage: React.FC = () => {
@@ -37,7 +38,7 @@ const LandingPage: React.FC = () => {
     <div 
       className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105 hover:scale-100 transition-transform duration-7000"
       style={{ 
-        backgroundImage: "url('/src/assets/pumpview_bg.png')",
+        backgroundImage: `url(${pumpviwBG})`,
       }}
     />
     
