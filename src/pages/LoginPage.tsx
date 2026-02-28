@@ -1,6 +1,6 @@
 // src/pages/LoginPage.tsx
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useNavigate, Link} from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,7 +23,6 @@ interface CredentialData {
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { login, isAuthenticated } = useAuth(); // Get login function and auth state
   const [formData, setFormData] = useState({
     email: '',
@@ -41,7 +40,7 @@ const LoginPage: React.FC = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  const from = (location.state as any)?.from?.pathname || '/add-sensor';
+ // const from = (location.state as any)?.from?.pathname || '/add-sensor';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
