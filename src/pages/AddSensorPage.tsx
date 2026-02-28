@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { 
   Droplets, 
   Ruler, 
@@ -20,11 +20,14 @@ import {
   Calendar,
   Database,
   UserCircle,
-  Phone
+  Phone,
+  Microchip
 } from 'lucide-react';
 import { db } from '@/config/firebase';
 import { collection, setDoc, doc } from 'firebase/firestore';
 import pumpviwBG from '@/assets/pumpview_bg.png';
+import { useAuth } from '@/contexts/AuthContext';
+import { LogOut, User as UserIcon } from 'lucide-react';
 
 interface SensorFormData {
   id: string;
@@ -58,9 +61,12 @@ interface SensorFormData {
 const AddSensorPage: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const { user, logout } = useAuth();
+
   const [formData, setFormData] = useState<SensorFormData>({
     id: '',
     sensorID: '',
@@ -87,6 +93,45 @@ const AddSensorPage: React.FC = () => {
     phoneNo: ''
   });
 
+  const validateForm = () => {
+    if (!formData.serialNumber.trim()) return "Serial Number is required";
+    if (!formData.sensorID.trim()) return "Sensor ID is required";
+    if (!formData.phoneNo.trim()) return "Phone number is required";
+    if (formData.location.lat === 0 || formData.location.lng === 0) 
+      return "Valid coordinates are required";
+    if (!formData.state.trim()) return "State is required";
+    if (!formData.lga.trim()) return "LGA is required";
+    if (!formData.ward.trim()) return "Ward is required";
+    if (!formData.name.trim()) return "Community name is required";
+    if (!formData.boreholeDepth) return "Borehole depth is required";
+    if (!formData.borehole_type.trim()) return "Borehole type is required";
+    if (!formData.storage_capacity) return "Storage capacity is required";
+    if (!formData.flowRate) return "Flow rate is required";
+    if (!formData.pumpingRate) return "Pumping rate is required";
+    if (!formData.ownership.trim()) return "Ownership is required";
+    if (!formData.beneficiaries) return "Number of beneficiaries is required";
+    if (!formData.assignedAgent.trim()) return "Assigned agent is required";
+    if (!formData.commissionDate) return "Commission date is required";
+    return null;
+  };
+
+  const handleLogout = () => {
+    setShowLogoutDialog(true);
+  };
+
+  const confirmLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setLoggingOut(false);
+      setShowLogoutDialog(false);
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     
@@ -105,67 +150,75 @@ const AddSensorPage: React.FC = () => {
         [name]: value
       }));
     }
+    // Clear error when user starts typing
+    if (error) setError(null);
   };
 
- // In your handleSubmit function:
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoading(true);
-  setError(null);
-  
-  try {
-    // Use the serial number or custom ID as the document ID
-    const customDocId = formData.serialNumber || formData.id || `sensor_${Date.now()}`;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     
-    const sensorData = {
-      // Include all fields except we don't need to store the ID separately
-      sensorID: formData.sensorID,
-      serialNumber: formData.serialNumber,
-      storage_capacity: parseFloat(formData.storage_capacity) || 0,
-      flowRate: parseFloat(formData.flowRate) || 0,
-      pumpingRate: parseFloat(formData.pumpingRate) || 0,
-      boreholeDepth: parseFloat(formData.boreholeDepth) || 0,
-      borehole_type: formData.borehole_type,
-      beneficiaries: parseInt(formData.beneficiaries) || 0,
-      commissionDate: formData.commissionDate,
-      aquiferType: formData.aquiferType,
-      assignedAgent: formData.assignedAgent,
-      location: {
-        lat: formData.location.lat,
-        lng: formData.location.lng
-      },
-      status: formData.status,
-      lastFlowDetected: new Date(Date.now() - 1000 * 120 * 3600),
-      hasFlow: parseFloat(formData.flowRate) > 0,
-      tankLevel: 100,
-      signalStrength: 100,
-      state: formData.state,
-      lga: formData.lga,
-      ward: formData.ward,
-      name: formData.name,
-      ownership: formData.ownership,
-      phone_no : formData.phoneNo
-    };
+    // Validate form
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
 
-    // Use setDoc with a specific document ID instead of addDoc
-    const collectionRef = collection(db, import.meta.env.VITE_FIREBASE_COLLECTION_NAME || 'sensors');
-    const docRef = doc(collectionRef, customDocId);
-    await setDoc(docRef, sensorData);
+    setLoading(true);
+    setError(null);
     
-    console.log('Sensor added with ID:', customDocId);
+    try {
+      // Use the serial number as the document ID
+      const customDocId = formData.serialNumber.trim();
+      
+      const sensorData = {
+        sensorID: formData.sensorID.trim(),
+        serialNumber: formData.serialNumber.trim(),
+        storage_capacity: parseFloat(formData.storage_capacity) || 0,
+        flowRate: parseFloat(formData.flowRate) || 0,
+        pumpingRate: parseFloat(formData.pumpingRate) || 0,
+        boreholeDepth: parseFloat(formData.boreholeDepth) || 0,
+        borehole_type: formData.borehole_type.trim(),
+        beneficiaries: parseInt(formData.beneficiaries) || 0,
+        commissionDate: formData.commissionDate,
+        aquiferType: formData.aquiferType.trim(),
+        assignedAgent: formData.assignedAgent.trim(),
+        location: {
+          lat: formData.location.lat,
+          lng: formData.location.lng
+        },
+        status: formData.status,
+        lastFlowDetected: new Date(Date.now() - 1000 * 120 * 3600),
+        hasFlow: parseFloat(formData.flowRate) > 0,
+        tankLevel: 100,
+        signalStrength: 100,
+        state: formData.state.trim(),
+        lga: formData.lga.trim(),
+        ward: formData.ward.trim(),
+        name: formData.name.trim(),
+        ownership: formData.ownership.trim(),
+        phone_no: formData.phoneNo.trim(),
+        createdBy: user?.email,
+        createdAt: new Date().toISOString()
+      };
 
-    setSuccess(true);
-    setTimeout(() => {
-      navigate('/dashboard');
-    }, 2000);
-    
-  } catch (err) {
-    setError(err instanceof Error ? err.message : 'Failed to add sensor');
-  } finally {
-    setLoading(false);
-  }
-};
+      const collectionRef = collection(db, import.meta.env.VITE_FIREBASE_COLLECTION_NAME || 'sensors');
+      const docRef = doc(collectionRef, customDocId);
+      await setDoc(docRef, sensorData);
+      
+      console.log('Sensor added with ID:', customDocId);
 
+      setSuccess(true);
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 2000);
+      
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add sensor');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div 
@@ -190,9 +243,81 @@ const handleSubmit = async (e: React.FormEvent) => {
                 <p className="text-sm text-gray-500">Register a new water monitoring sensor</p>
               </div>
             </div>
+
+            {/* User info and logout button */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <UserIcon className="w-4 h-4" />
+                <span className="hidden md:inline">{user?.name || user?.email}</span>
+                <span className="hidden sm:inline md:hidden">
+                  {user?.name?.split(' ')[0] || user?.email?.split('@')[0]}
+                </span>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={handleLogout}
+                className="sm:hidden text-gray-600 hover:text-red-600"
+                title="Logout"
+                disabled={loggingOut}
+              >
+                {loggingOut ? (
+                  <div className="w-4 h-4 border-2 border-gray-600 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <LogOut className="w-4 h-4" />
+                )}
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleLogout}
+                className="hidden sm:flex text-gray-600 hover:text-red-600 hover:bg-red-50"
+                disabled={loggingOut}
+              >
+                {loggingOut ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-gray-600 border-t-transparent rounded-full animate-spin mr-2" />
+                    Logging out...
+                  </>
+                ) : (
+                  <>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </header>
+
+      {/* Logout Confirmation Dialog */}
+      {showLogoutDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-96 mx-4">
+            <CardHeader>
+              <CardTitle>Confirm Logout</CardTitle>
+              <CardDescription>Are you sure you want to logout?</CardDescription>
+            </CardHeader>
+            <CardFooter className="flex justify-end gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowLogoutDialog(false)}
+                disabled={loggingOut}
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={confirmLogout}
+                disabled={loggingOut}
+              >
+                {loggingOut ? 'Logging out...' : 'Logout'}
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+      )}
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -225,10 +350,10 @@ const handleSubmit = async (e: React.FormEvent) => {
               <div className="space-y-4">
                 <h3 className="font-medium text-gray-900 border-b pb-2">Basic Details</h3>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 
                   <div>
-                    <Label htmlFor="serialNumber">Serial Number</Label>
+                    <Label htmlFor="serialNumber">Serial Number <span className="text-red-500">*</span></Label>
                     <div className="relative">
                       <Hash className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
                       <Input
@@ -244,9 +369,9 @@ const handleSubmit = async (e: React.FormEvent) => {
                   </div>
 
                   <div>
-                    <Label htmlFor="sensorID">Sensor ID</Label>
+                    <Label htmlFor="sensorID">Sensor ID <span className="text-red-500">*</span></Label>
                     <div className="relative">
-                      <Droplets className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                      <Microchip className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
                       <Input
                         id="sensorID"
                         name="sensorID"
@@ -260,7 +385,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                   </div>
 
                   <div>
-                    <Label htmlFor="phoneNo">Phone No</Label>
+                    <Label htmlFor="phoneNo">Phone No <span className="text-red-500">*</span></Label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
                       <Input
@@ -280,9 +405,9 @@ const handleSubmit = async (e: React.FormEvent) => {
 
               {/* Location Information */}
               <div className="space-y-4">
-                <h3 className="font-medium text-gray-900 border-b pb-2">Location Details</h3>
+                <h3 className="font-medium text-gray-900 border-b pb-2">Location Details <span className="text-red-500">*</span></h3>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="state">State</Label>
                     <Input
@@ -363,9 +488,9 @@ const handleSubmit = async (e: React.FormEvent) => {
 
               {/* Technical Specifications */}
               <div className="space-y-4">
-                <h3 className="font-medium text-gray-900 border-b pb-2">Technical Specifications</h3>
+                <h3 className="font-medium text-gray-900 border-b pb-2">Technical Specifications <span className="text-red-500">*</span></h3>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="boreholeDepth">Borehole Depth (m)</Label>
                     <div className="relative">
@@ -389,7 +514,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                     <Input
                       id="borehole_type"
                       name="borehole_type"
-                      placeholder="e.g., Solar Powerd, Tubewell, Dugwell"
+                      placeholder="e.g., Solar Powered, Tubewell, Dugwell"
                       value={formData.borehole_type}
                       onChange={handleChange}
                       required
@@ -430,9 +555,9 @@ const handleSubmit = async (e: React.FormEvent) => {
 
               {/* Flow Measurements */}
               <div className="space-y-4">
-                <h3 className="font-medium text-gray-900 border-b pb-2">Flow Measurements</h3>
+                <h3 className="font-medium text-gray-900 border-b pb-2">Flow Measurements <span className="text-red-500">*</span></h3>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="flowRate">Flow Rate (m³/h)</Label>
                     <div className="relative">
@@ -473,9 +598,9 @@ const handleSubmit = async (e: React.FormEvent) => {
 
               {/* Administrative Information */}
               <div className="space-y-4">
-                <h3 className="font-medium text-gray-900 border-b pb-2">Administrative Details</h3>
+                <h3 className="font-medium text-gray-900 border-b pb-2">Administrative Details <span className="text-red-500">*</span></h3>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="ownership">Ownership</Label>
                     <div className="relative">
@@ -551,7 +676,10 @@ const handleSubmit = async (e: React.FormEvent) => {
                   disabled={loading || success}
                 >
                   {loading ? (
-                    <>Adding Sensor...</>
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      Adding Sensor...
+                    </>
                   ) : (
                     <>
                       <Save className="w-4 h-4 mr-2" />
@@ -568,6 +696,11 @@ const handleSubmit = async (e: React.FormEvent) => {
                   Cancel
                 </Button>
               </div>
+
+              {/* Required fields note */}
+              <p className="text-xs text-gray-500 text-right">
+                <span className="text-red-500">*</span> Required fields
+              </p>
             </form>
           </CardContent>
         </Card>

@@ -20,6 +20,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
 import pumpviewLogo from '@/assets/pumpview_logo.png';
 
@@ -29,17 +30,10 @@ export const Dashboard: React.FC = () => {
   const { sensors, loading, error, usingDemoData, refreshSensors } = useSensors();
   const [viewMode, setViewMode] = useState<'split' | 'map' | 'list'>('split');
   const [selectedSensorId, setSelectedSensorId] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showPublicNotice, setShowPublicNotice] = useState(true);
   
   const navigate = useNavigate();
-
-  // Check authentication status on component mount
-  useEffect(() => {
-    const authStatus = localStorage.getItem('isAuthenticated') === 'true' || 
-                      sessionStorage.getItem('isAuthenticated') === 'true';
-    setIsAuthenticated(authStatus);
-  }, []);
+  const { isAuthenticated, user, logout } = useAuth(); // Use auth context
 
   // Auto-hide public notice after 5 seconds
   useEffect(() => {
@@ -56,17 +50,13 @@ export const Dashboard: React.FC = () => {
     setSelectedSensorId(sensor.id === selectedSensorId ? null : sensor.id);
   };
 
-  const handleLogout = () => {
-    // Clear authentication
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('userEmail');
-    sessionStorage.removeItem('isAuthenticated');
-    
-    // Update state
-    setIsAuthenticated(false);
-    
-    // Optional: Show success message or redirect
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   if (loading) {
@@ -144,7 +134,9 @@ export const Dashboard: React.FC = () => {
                   <div className="flex items-center gap-2 ml-2 pl-2 border-l border-gray-200">
                     <div className="hidden sm:flex items-center gap-1 text-sm text-gray-600">
                       <User className="w-4 h-4" />
-                      <span>Admin</span>
+                      <span className="max-w-[100px] truncate">
+                        {user?.name || user?.email?.split('@')[0] || 'Admin'}
+                      </span>
                     </div>
                     <Button
                       variant="ghost"

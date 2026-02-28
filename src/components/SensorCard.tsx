@@ -100,7 +100,7 @@ const getStatusColor = (status: string) => {
             </span>
           </div>
 
-          {/* Battery */}
+          {/* Cylinder */}
           {sensor.tankLevel !== undefined && (
             <div className="flex items-center gap-2 text-gray-600">
               <Cylinder className={`w-4 h-4 ${getBatteryColor(sensor.tankLevel)}`} />

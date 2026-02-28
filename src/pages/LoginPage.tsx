@@ -1,5 +1,5 @@
 // src/pages/LoginPage.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,19 +7,24 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Droplets, Mail, Lock, ArrowLeft, Eye, EyeOff, LogIn } from 'lucide-react';
+import { db } from '@/config/firebase';
+import { collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 import pumpviewLogo from '@/assets/pumpview_logo.png';
 import pumpviwBG from '@/assets/pumpview_bg.png';
 
-
-// For demo purposes - in production, use proper authentication
-const DEMO_CREDENTIALS = {
-  email: 'admin@pumpview.com',
-  password: 'admin123'
-};
+interface CredentialData {
+  email: string;
+  password: string;
+  name?: string;
+  role?: string;
+  isActive: boolean;
+}
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { login, isAuthenticated } = useAuth(); // Get login function and auth state
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -29,7 +34,13 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [rememberMe, setRememberMe] = useState(false);
 
-  // Get the redirect path from location state or default to add-sensor
+  // If already authenticated, redirect to add-sensor
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/add-sensor', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
   const from = (location.state as any)?.from?.pathname || '/add-sensor';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,7 +49,6 @@ const LoginPage: React.FC = () => {
       ...prev,
       [name]: value
     }));
-    // Clear error when user starts typing
     if (error) setError(null);
   };
 
@@ -47,37 +57,62 @@ const LoginPage: React.FC = () => {
     setLoading(true);
     setError(null);
 
-    // Simulate API call
-    setTimeout(() => {
-      // Demo authentication - in production, replace with actual auth
-      if (formData.email === DEMO_CREDENTIALS.email && formData.password === DEMO_CREDENTIALS.password) {
-        // Store auth state if remember me is checked
-        if (rememberMe) {
-          localStorage.setItem('isAuthenticated', 'true');
-          localStorage.setItem('userEmail', formData.email);
-        } else {
-          sessionStorage.setItem('isAuthenticated', 'true');
-        }
-        
-        // Redirect to the page user tried to visit or add-sensor
-        navigate(from, { replace: true });
-      } else {
-        setError('Invalid email or password. Try admin@pumpview.com / admin123');
+    try {
+      const credentialsRef = collection(db, 'credentials');
+      const q = query(
+        credentialsRef, 
+        where('email', '==', formData.email.toLowerCase().trim()),
+        where('isActive', '==', true),
+        limit(1)
+      );
+      
+      const querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.empty) {
+        setError('Invalid email or password');
+        setLoading(false);
+        return;
       }
+
+      const credentialDoc = querySnapshot.docs[0];
+      const credentialData = credentialDoc.data() as CredentialData;
+      
+      if (credentialData.password === formData.password) {
+        // Create user object
+        const userInfo = {
+          id: credentialDoc.id,
+          email: credentialData.email,
+          name: credentialData.name || credentialData.email.split('@')[0],
+          role: credentialData.role || 'admin'
+        };
+        
+        // Use the login function from AuthContext
+        login(userInfo, rememberMe);
+        
+        // Navigation will happen automatically via the useEffect above
+        // when isAuthenticated becomes true
+      } else {
+        setError('Invalid email or password');
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('An error occurred during login. Please try again.');
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   const handleDemoLogin = () => {
     setFormData({
-      email: DEMO_CREDENTIALS.email,
-      password: DEMO_CREDENTIALS.password
+      email: 'sagir@ghi.com',
+      password: 'sagir123'
     });
   };
 
+  // Rest of your JSX remains the same...
   return (
-      <div 
-      className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+    <div 
+      className="absolute inset-0 bg-cover bg-center bg-no-repeat overflow-y-auto"
       style={{ 
         backgroundImage: `url(${pumpviwBG})`,
       }} >
@@ -95,16 +130,20 @@ const LoginPage: React.FC = () => {
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
-          {/* Logo and Title */}
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
-              <div className="bg-blue-600 p-3 rounded-2xl shadow-lg">
-                <img src={pumpviewLogo} alt="Pumpview Logo" className="w-16 h-20 filter brightness-0 invert" />
-              </div>
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Access Only</h1>
-            <p className="text-gray-500">Sign in to add or manage sensors</p>
-          </div>
+        {/* Logo and Title */}
+<div className="text-center mb-8">
+  <div className="flex justify-center mb-4">
+    <div className="bg-blue-600 p-3 rounded-2xl shadow-lg">
+      <img 
+        src={pumpviewLogo} 
+        alt="Pumpview Logo" 
+        className="w-16 h-20" // Removed filter classes
+      />
+    </div>
+  </div>
+  <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Access Only</h1>
+  <p className="text-gray-500">Sign in to add or manage sensors</p>
+</div>
 
           {/* Login Card */}
           <Card className="border-0 shadow-xl">
@@ -135,12 +174,13 @@ const LoginPage: React.FC = () => {
                       id="email"
                       name="email"
                       type="email"
-                      placeholder="admin@pumpview.com"
+                      placeholder="admin@example.com"
                       className="pl-9 h-11"
                       value={formData.email}
                       onChange={handleChange}
                       required
                       disabled={loading}
+                      autoComplete="email"
                     />
                   </div>
                 </div>
@@ -170,6 +210,7 @@ const LoginPage: React.FC = () => {
                       onChange={handleChange}
                       required
                       disabled={loading}
+                      autoComplete="current-password"
                     />
                     <button
                       type="button"
@@ -239,11 +280,11 @@ const LoginPage: React.FC = () => {
                   <div className="space-y-1 text-sm">
                     <div className="flex items-center gap-2">
                       <Mail className="w-3 h-3 text-blue-600" />
-                      <code className="text-blue-800">admin@pumpview.com</code>
+                      <code className="text-blue-800">sagir@ghi.com</code>
                     </div>
                     <div className="flex items-center gap-2">
                       <Lock className="w-3 h-3 text-blue-600" />
-                      <code className="text-blue-800">admin123</code>
+                      <code className="text-blue-800">sagir123</code>
                     </div>
                   </div>
                   <Button
