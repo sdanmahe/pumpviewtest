@@ -173,7 +173,7 @@ const LandingPage: React.FC = () => {
               <span className="text-gray-600">Serving 50+ communities</span>
               <span className="text-gray-300">|</span>
               <Droplets className="w-6 h-6 text-gray-400" />
-              <span className="text-gray-600">Monitoring 1000+ sensors</span>
+              <span className="text-gray-600">Monitoring 100+ sensors</span>
             </div>
           </div>
         </div>

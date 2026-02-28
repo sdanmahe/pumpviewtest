@@ -126,7 +126,7 @@ export const Dashboard: React.FC = () => {
                   <Link to="/add-sensor">
                     <Button variant="default" className="bg-blue-600 hover:bg-blue-700 gap-2">
                       <Droplets className="w-4 h-4" />
-                      Add Sensor
+                      Sensor Management
                     </Button>
                   </Link>
 
