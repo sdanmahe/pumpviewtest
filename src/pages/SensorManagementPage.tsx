@@ -1226,7 +1226,7 @@ const StatusBadge = ({ status }: { status: string }) => {
                           name="assigned_agent"
                           placeholder="e.g., John Doe"
                           className="pl-9"
-                          value={formData.assigned_agent}
+                          value={user?.name}
                           onChange={handleChange}
                           required
                         />
