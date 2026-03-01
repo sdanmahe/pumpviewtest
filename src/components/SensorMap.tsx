@@ -213,13 +213,13 @@ export const SensorMap: React.FC<SensorMapProps> = ({ sensors, apiKey }) => {
 
               {/* Status Badge */}
               <div className="mt-2">
-                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                  selectedSensor.status === 'Active' ? 'bg-green-100 text-green-800' :
-                  selectedSensor.status === 'Warning' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {selectedSensor.status}
-                </span>
+               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+  selectedSensor.status === 'Active' ? 'bg-green-100 text-green-800' :
+  selectedSensor.status?.toLowerCase().includes('Warning') ? 'bg-yellow-100 text-yellow-800' :
+  'bg-gray-100 text-gray-800'
+}`}>
+  {selectedSensor.status}
+</span>
               </div>
             </div>
           </div>
