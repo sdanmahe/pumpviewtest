@@ -137,7 +137,7 @@ export const SensorMap: React.FC<SensorMapProps> = ({ sensors, apiKey }) => {
           position={{ lat: sensor.location.lat, lng: sensor.location.lng }}
           icon={getMarkerIcon(sensor.flowDetected, sensor.status)}
           onClick={() => setSelectedSensor(sensor)}
-          title={sensor.name}
+          title={sensor.community}
         />
       ))}
 
@@ -147,7 +147,7 @@ export const SensorMap: React.FC<SensorMapProps> = ({ sensors, apiKey }) => {
           onCloseClick={() => setSelectedSensor(null)}
         >
           <div className="p-2 min-w-[200px]">
-            <h3 className="font-semibold text-gray-900 mb-2">{selectedSensor.name}</h3>
+            <h3 className="font-semibold text-gray-900 mb-2">{selectedSensor.community}</h3>
             
             <div className="space-y-2">
               {/* Flow Status */}
@@ -173,14 +173,14 @@ export const SensorMap: React.FC<SensorMapProps> = ({ sensors, apiKey }) => {
               )}
 
               {/* Cylinder Level */}
-              {selectedSensor.tankLevel !== undefined && (
+              {selectedSensor.tank_level !== undefined && (
                 <div className="flex items-center gap-2">
                   <Cylinder className={`w-4 h-4 ${
-                    selectedSensor.tankLevel > 50 ? 'text-green-500' : 
-                    selectedSensor.tankLevel > 20 ? 'text-yellow-500' : 'text-red-500'
+                    selectedSensor.tank_level > 50 ? 'text-green-500' : 
+                    selectedSensor.tank_level > 20 ? 'text-yellow-500' : 'text-red-500'
                   }`} />
                   <span className="text-sm text-gray-600">
-                    Tank Level: {selectedSensor.tankLevel}%
+                    Tank Level: {selectedSensor.tank_level}%
                   </span>
                 </div>
               )}
@@ -203,10 +203,10 @@ export const SensorMap: React.FC<SensorMapProps> = ({ sensors, apiKey }) => {
               )}
               
               {/* Ownership */}
-              {selectedSensor.owner !== undefined && (
+              {selectedSensor.ownership !== undefined && (
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-600">
-                    Owner: {selectedSensor.owner}
+                    Owner: {selectedSensor.ownership}
                   </span>
                 </div>
               )}

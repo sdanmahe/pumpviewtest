@@ -7,43 +7,43 @@ import { isAfter, subHours } from 'date-fns';
 const DEMO_SENSORS: SensorData[] = [
   {
     id: 'S01T01D001',
-    name: 'Demo Sensor 1',
+    community: 'Demo Sensor 1',
     location: { lat: 12.6921, lng: 5.0043 },
     lastFlowDetected: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
     flowDetected: true,
     status: 'Active',
-    tankLevel: 85,
+    tank_level: 85,
     state: 'Sokoto',
     lga: 'Yabo',
-    owner: 'GHI/USAID',
+    ownership: 'GHI/USAID',
     type: 'Solar Powered',
     capacity: '15m3'
   },
   {
     id: 'S01T02D001',
-    name: 'Demo Sensor 2',
+    community: 'Demo Sensor 2',
     location: { lat: 13.4694, lng: 5.1435 },
     lastFlowDetected: new Date(Date.now() - 1000 * 60 * 60 * 25), // 25 hours ago
     flowDetected: false,
     status: 'Active',
-    tankLevel: 62,
+    tank_level: 62,
     state: 'Sokoto',
     lga: 'Yabo',
-    owner: 'GHI/USAID',
+    ownership: 'GHI/USAID',
     type: 'Solar Powered',
     capacity: '15m3'
   },
   {
     id: 'sensor-003',
-    name: 'Basement Leak Detector',
+    community: 'Basement Leak Detector',
     location: { lat: 12.1810, lng: 4.0926 },
     lastFlowDetected: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
     flowDetected: true,
     status: 'warning',
-    tankLevel: 45,
+    tank_level: 45,
     state: 'Sokoto',
     lga: 'Yabo',
-    owner: 'GHI/USAID',
+    ownership: 'GHI/USAID',
     type: 'Solar Powered',
     capacity: '15m3',
   },
@@ -103,7 +103,7 @@ export function useSensors() {
               lastFlowDetected: lastFlowDate,
               flowDetected: checkFlowInLast24Hours(lastFlowDate),
               status: data.status,
-              tank_level: data.tankLevel,
+              tank_level: data.tank_level,
               state: data.state,
               lga: data.lga,
               ownership: data.ownership,
@@ -149,7 +149,7 @@ export function useSensors() {
         
         sensorsData.push({
           id: doc.id,
-          name: data.name || `Sensor ${doc.id}`,
+          community: data.community || `Sensor ${doc.id}`,
           location: {
             lat: data.location?.lat || 0,
             lng: data.location?.lng || 0,
@@ -157,10 +157,10 @@ export function useSensors() {
           lastFlowDetected: lastFlowDate,
           flowDetected: checkFlowInLast24Hours(lastFlowDate),
           status: data.status,
-          tankLevel: data.tankLevel,
+          tank_level: data.tank_level,
           state: data.state,
           lga: data.lga,
-          owner: data.ownership,
+          ownership: data.ownership,
           type: data.borehole_type,
           capacity: data.storage_capacity
         });
