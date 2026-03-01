@@ -343,7 +343,6 @@ const SensorManagementPage: React.FC = () => {
     if (!formData.pumping_rate) return "Pumping rate is required";
     if (!formData.ownership.trim()) return "Ownership is required";
     if (!formData.beneficiaries) return "Number of beneficiaries is required";
-    if (!formData.assigned_agent.trim()) return "Assigned agent is required";
     if (!formData.commission_date) return "Commission date is required";
     return null;
   };
@@ -417,7 +416,7 @@ const SensorManagementPage: React.FC = () => {
         beneficiaries: parseInt(formData.beneficiaries) || 0,
         commission_date: formData.commission_date,
         aquifer_type: formData.aquifer_type.trim(),
-        assigned_agent: formData.assigned_agent.trim(),
+        assigned_agent: user?.name.trim(),
         location: {
           lat: formData.location.lat,
           lng: formData.location.lng
@@ -1228,7 +1227,6 @@ const StatusBadge = ({ status }: { status: string }) => {
                           className="pl-9"
                           value={user?.name}
                           onChange={handleChange}
-                          required
                         />
                       </div>
                     </div>
