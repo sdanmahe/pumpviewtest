@@ -11,7 +11,7 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ sensors }) => {
   const totalSensors = sensors.length;
   const activeFlowSensors = sensors.filter(s => s.flowDetected).length;
   const onlineSensors = sensors.filter(s => s.status === 'Active').length;
-  const warningSensors = sensors.filter(s => s.status.includes('warning')).length;
+  const warningSensors = sensors.filter(s => s.status?.includes('Warning')).length;
 
   const stats = [
     {

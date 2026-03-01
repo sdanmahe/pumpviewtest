@@ -41,31 +41,31 @@ import { useAuth } from '@/contexts/AuthContext';
 
 // Interface matching the updated AddSensorPage data structure
 interface SensorData {
-  id: string; // This will be the serial number
+  id: string;
   sensorID: string;
-  serialNumber: string; // Same as id
+  serial_number: string;
   location: {
     lat: number;
     lng: number;
   };
   lastFlowDetected?: Date | null;
   flowDetected?: boolean;
-  status: 'Active' | 'Inactive' | 'warning';
+  status: string;
   tankLevel?: number;
   state: string;
   lga: string;
   ward: string;
-  name: string; // Community name
+  community: string;
   ownership: string;
   storage_capacity: number;
   flowRate: number;
-  pumpingRate: number;
-  boreholeDepth: number;
+  pumping_rate: number;
+  borehole_depth: number;
   borehole_type: string;
   beneficiaries: number;
-  commissionDate: string;
-  aquiferType: string;
-  assignedAgent: string;
+  commission_date: string;
+  aquifer_type: string;
+  assigned_agent: string;
   phone_no: string;
   createdBy?: string;
   createdAt?: string;
@@ -78,30 +78,30 @@ interface SensorData {
 interface SensorFormData {
   id: string;
   sensorID: string;
-  serialNumber: string;
+  serial_number: string;
   location: {
     lat: number;
     lng: number;
   };
   lastFlowDetected?: Date | null;
   flowDetected?: boolean;
-  status: 'Active' | 'Inactive' | 'warning';
+  status: string;
   tankLevel: string;
   state: string;
   lga: string;
   ward: string;
-  name: string;
+  community: string;
   ownership: string;
   storage_capacity: string;
   flowRate: string;
-  pumpingRate: string;
-  boreholeDepth: string;
+  pumping_rate: string;
+  borehole_depth: string;
   borehole_type: string;
   beneficiaries: string;
-  commissionDate: string;
-  aquiferType: string;
-  assignedAgent: string;
-  phoneNo: string;
+  commission_date: string;
+  aquifer_type: string;
+  assigned_agent: string;
+  phone_num: string;
 }
 
 type ViewMode = 'list' | 'add' | 'edit' | 'view';
@@ -125,11 +125,11 @@ const SensorManagementPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   
-  // Initialize form data matching AddSensorPage structure
+  // Initialize form data
   const [formData, setFormData] = useState<SensorFormData>({
     id: '',
     sensorID: '',
-    serialNumber: '',
+    serial_number: '',
     location: { lat: 0, lng: 0 },
     lastFlowDetected: new Date(Date.now() - 1000 * 60 * 30),
     flowDetected: false,
@@ -138,18 +138,18 @@ const SensorManagementPage: React.FC = () => {
     state: '',
     lga: '',
     ward: '',
-    name: '',
+    community: '',
     ownership: '',
     storage_capacity: '',
     flowRate: '',
-    pumpingRate: '',
-    boreholeDepth: '',
+    pumping_rate: '',
+    borehole_depth: '',
     borehole_type: '',
     beneficiaries: '',
-    commissionDate: '',
-    aquiferType: '',
-    assignedAgent: '',
-    phoneNo: ''
+    commission_date: '',
+    aquifer_type: '',
+    assigned_agent: '',
+    phone_num: ''
   });
 
   // Fetch sensors on component mount
@@ -179,26 +179,118 @@ const SensorManagementPage: React.FC = () => {
     }
   };
 
+  // Helper function to safely get string value
+  const getStringValue = (value: any): string => {
+    if (value === null || value === undefined) return '';
+    return String(value);
+  };
+
+  // Helper function to safely get number value
+  const getNumberValue = (value: any): number => {
+    if (value === null || value === undefined) return 0;
+    if (typeof value === 'number') return value;
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? 0 : parsed;
+  };
+
+  // Helper function to safely get status
+  const getValidStatus = (status: any): 'Active' | 'Inactive' | 'Warning' => {
+    if (status === 'Active') return 'Active';
+    if (status?.includes('Warning')) return status;
+    
+    return 'Inactive'; // Default
+  };
+
   const fetchSensors = async () => {
     setLoading(true);
+    setError(null);
+    
     try {
-      const sensorsRef = collection(db, import.meta.env.VITE_FIREBASE_COLLECTION_NAME || 'sensors');
-      const q = query(sensorsRef, orderBy('name'));
+      const collectionName = import.meta.env.VITE_FIREBASE_COLLECTION_NAME || 'sensors';
+      console.log('Fetching from collection:', collectionName);
+      
+      const sensorsRef = collection(db, collectionName);
+      const q = query(sensorsRef, orderBy('community'));
       const querySnapshot = await getDocs(q);
       
+      console.log('Number of documents found:', querySnapshot.size);
+      
       const sensorsData: SensorData[] = [];
+      
       querySnapshot.forEach((doc) => {
         const data = doc.data();
-        sensorsData.push({ 
-          id: doc.id, 
-          serialNumber: doc.id, // Use document ID as serial number
-          ...data 
-        } as SensorData);
+        console.log('Document ID:', doc.id);
+        console.log('Document data:', data);
+        
+        // Map the data with safe fallbacks
+        const sensor: SensorData = {
+          id: doc.id,
+          serial_number: doc.id,
+          sensorID: getStringValue(data.sensorID || data.sensor_id || ''),
+          
+          // Name - try different possible field names
+          community: getStringValue(data.community || data.communityName || data.community || data.siteName || 'Unnamed Sensor'),
+          
+          // Location
+          location: {
+            lat: getNumberValue(data.location?.lat || data.lat || 0),
+            lng: getNumberValue(data.location?.lng || data.lng || 0)
+          },
+          
+          // Status - ensure valid value
+          status: getValidStatus(data.status),
+          
+          // Flow related
+          lastFlowDetected: data.lastFlowDetected ? new Date(data.lastFlowDetected) : null,
+          flowDetected: Boolean(data.flowDetected || data.hasFlow || false),
+          flowRate: getNumberValue(data.flowRate || data.flow_rate || 0),
+          pumping_rate: getNumberValue(data.pumping_rate || data.pumping_rate || 0),
+          hasFlow: Boolean(data.hasFlow || data.flowDetected || false),
+          
+          // Technical specs
+          tankLevel: getNumberValue(data.tankLevel || data.tank_level || 0),
+          borehole_depth: getNumberValue(data.borehole_depth || data.borehole_depth || 0),
+          borehole_type: getStringValue(data.borehole_type || data.boreholeType || ''),
+          aquifer_type: getStringValue(data.aquifer_type || data.aquifer_type || ''),
+          storage_capacity: getNumberValue(data.storage_capacity || data.storageCapacity || 0),
+          
+          // Location fields
+          state: getStringValue(data.state || ''),
+          lga: getStringValue(data.lga || data.LGA || ''),
+          ward: getStringValue(data.ward || ''),
+          
+          // Administrative
+          ownership: getStringValue(data.ownership || ''),
+          beneficiaries: getNumberValue(data.beneficiaries || 0),
+          commission_date: getStringValue(data.commission_date || data.commission_date || ''),
+          
+          // Agent info
+          assigned_agent: getStringValue(data.assigned_agent || data.assigned_agent || data.agent || ''),
+          phone_no: getStringValue(data.phone_no || data.phone_num || data.phone || data.phoneNumber || ''),
+          
+          // System fields
+          createdBy: getStringValue(data.createdBy || ''),
+          createdAt: getStringValue(data.createdAt || ''),
+          lastUpdate: getStringValue(data.lastUpdate || ''),
+          
+          // Device metrics
+          batteryLevel: getNumberValue(data.batteryLevel || 100),
+          signalStrength: getNumberValue(data.signalStrength || 100)
+        };
+        
+        sensorsData.push(sensor);
       });
       
+      console.log('Final mapped sensors data:', sensorsData);
       setSensors(sensorsData);
       setFilteredSensors(sensorsData);
+      
+      if (sensorsData.length === 0) {
+        setError('No sensors found in the database');
+      }
+      
     } catch (err) {
+      console.error('Error fetching sensors:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch sensors');
     } finally {
       setLoading(false);
@@ -212,14 +304,14 @@ const SensorManagementPage: React.FC = () => {
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(sensor => 
-        sensor.name?.toLowerCase().includes(term) ||
+        sensor.community?.toLowerCase().includes(term) ||
         sensor.id?.toLowerCase().includes(term) ||
         sensor.sensorID?.toLowerCase().includes(term) ||
         sensor.state?.toLowerCase().includes(term) ||
         sensor.lga?.toLowerCase().includes(term) ||
         sensor.ward?.toLowerCase().includes(term) ||
-        sensor.assignedAgent?.toLowerCase().includes(term) ||
-        sensor.phone_no?.includes(term)
+        sensor.assigned_agent?.toLowerCase().includes(term) ||
+        sensor.phone_no?.toLowerCase().includes(term)
       );
     }
     
@@ -232,25 +324,27 @@ const SensorManagementPage: React.FC = () => {
     setCurrentPage(1);
   };
 
+  // ============ MISSING FORM HANDLING FUNCTIONS ============
+
   const validateForm = () => {
-    if (!formData.serialNumber.trim()) return "Serial Number is required";
+    if (!formData.serial_number.trim()) return "Serial Number is required";
     if (!formData.sensorID.trim()) return "Sensor ID is required";
-    if (!formData.phoneNo.trim()) return "Phone number is required";
+    if (!formData.phone_num.trim()) return "Phone number is required";
     if (formData.location.lat === 0 || formData.location.lng === 0) 
       return "Valid coordinates are required";
     if (!formData.state.trim()) return "State is required";
     if (!formData.lga.trim()) return "LGA is required";
     if (!formData.ward.trim()) return "Ward is required";
-    if (!formData.name.trim()) return "Community name is required";
-    if (!formData.boreholeDepth) return "Borehole depth is required";
+    if (!formData.community.trim()) return "Community name is required";
+    if (!formData.borehole_depth) return "Borehole depth is required";
     if (!formData.borehole_type.trim()) return "Borehole type is required";
     if (!formData.storage_capacity) return "Storage capacity is required";
     if (!formData.flowRate) return "Flow rate is required";
-    if (!formData.pumpingRate) return "Pumping rate is required";
+    if (!formData.pumping_rate) return "Pumping rate is required";
     if (!formData.ownership.trim()) return "Ownership is required";
     if (!formData.beneficiaries) return "Number of beneficiaries is required";
-    if (!formData.assignedAgent.trim()) return "Assigned agent is required";
-    if (!formData.commissionDate) return "Commission date is required";
+    if (!formData.assigned_agent.trim()) return "Assigned agent is required";
+    if (!formData.commission_date) return "Commission date is required";
     return null;
   };
 
@@ -288,13 +382,13 @@ const SensorManagementPage: React.FC = () => {
     setSuccess(null);
     
     try {
-      const documentId = formData.serialNumber.trim();
+      const documentId = formData.serial_number.trim();
       
       // Check if serial number already exists (for new sensors)
       if (viewMode === 'add') {
         const existingQuery = query(
           collection(db, import.meta.env.VITE_FIREBASE_COLLECTION_NAME || 'sensors'),
-          where('serialNumber', '==', documentId)
+          where('serial_number', '==', documentId)
         );
         const existingDocs = await getDocs(existingQuery);
         
@@ -305,23 +399,30 @@ const SensorManagementPage: React.FC = () => {
         }
       }
 
+      // Determine status based on flow rate if not explicitly set
+      let status = formData.status;
+      if (!status || status === 'Inactive') {
+        const flowRate = parseFloat(formData.flowRate) || 0;
+        status = flowRate > 0 ? 'Active' : 'Inactive';
+      }
+
       const sensorData = {
         sensorID: formData.sensorID.trim(),
-        serialNumber: documentId,
+        serial_number: documentId,
         storage_capacity: parseFloat(formData.storage_capacity) || 0,
         flowRate: parseFloat(formData.flowRate) || 0,
-        pumpingRate: parseFloat(formData.pumpingRate) || 0,
-        boreholeDepth: parseFloat(formData.boreholeDepth) || 0,
+        pumping_rate: parseFloat(formData.pumping_rate) || 0,
+        borehole_depth: parseFloat(formData.borehole_depth) || 0,
         borehole_type: formData.borehole_type.trim(),
         beneficiaries: parseInt(formData.beneficiaries) || 0,
-        commissionDate: formData.commissionDate,
-        aquiferType: formData.aquiferType.trim(),
-        assignedAgent: formData.assignedAgent.trim(),
+        commission_date: formData.commission_date,
+        aquifer_type: formData.aquifer_type.trim(),
+        assigned_agent: formData.assigned_agent.trim(),
         location: {
           lat: formData.location.lat,
           lng: formData.location.lng
         },
-        status: formData.status,
+        status: status,
         lastFlowDetected: new Date(Date.now() - 1000 * 60 * 30),
         hasFlow: parseFloat(formData.flowRate) > 0,
         tankLevel: parseFloat(formData.tankLevel) || 0,
@@ -329,9 +430,9 @@ const SensorManagementPage: React.FC = () => {
         state: formData.state.trim(),
         lga: formData.lga.trim(),
         ward: formData.ward.trim(),
-        name: formData.name.trim(),
+        community: formData.community.trim(),
         ownership: formData.ownership.trim(),
-        phone_no: formData.phoneNo.trim(),
+        phone_no: formData.phone_num.trim(),
         ...(viewMode === 'add' && {
           createdBy: user?.email,
           createdAt: new Date().toISOString()
@@ -385,7 +486,7 @@ const SensorManagementPage: React.FC = () => {
     setFormData({
       id: sensor.id,
       sensorID: sensor.sensorID || '',
-      serialNumber: sensor.id,
+      serial_number: sensor.id,
       location: sensor.location || { lat: 0, lng: 0 },
       lastFlowDetected: sensor.lastFlowDetected || new Date(Date.now() - 1000 * 60 * 30),
       flowDetected: sensor.flowDetected || false,
@@ -394,18 +495,18 @@ const SensorManagementPage: React.FC = () => {
       state: sensor.state || '',
       lga: sensor.lga || '',
       ward: sensor.ward || '',
-      name: sensor.name || '',
+      community: sensor.community || '',
       ownership: sensor.ownership || '',
       storage_capacity: sensor.storage_capacity?.toString() || '',
       flowRate: sensor.flowRate?.toString() || '',
-      pumpingRate: sensor.pumpingRate?.toString() || '',
-      boreholeDepth: sensor.boreholeDepth?.toString() || '',
+      pumping_rate: sensor.pumping_rate?.toString() || '',
+      borehole_depth: sensor.borehole_depth?.toString() || '',
       borehole_type: sensor.borehole_type || '',
       beneficiaries: sensor.beneficiaries?.toString() || '',
-      commissionDate: sensor.commissionDate || '',
-      aquiferType: sensor.aquiferType || '',
-      assignedAgent: sensor.assignedAgent || '',
-      phoneNo: sensor.phone_no || ''
+      commission_date: sensor.commission_date || '',
+      aquifer_type: sensor.aquifer_type || '',
+      assigned_agent: sensor.assigned_agent || '',
+      phone_num: sensor.phone_no || ''
     });
     setViewMode('edit');
   };
@@ -419,7 +520,7 @@ const SensorManagementPage: React.FC = () => {
     setFormData({
       id: '',
       sensorID: '',
-      serialNumber: '',
+      serial_number: '',
       location: { lat: 0, lng: 0 },
       lastFlowDetected: new Date(Date.now() - 1000 * 60 * 30),
       flowDetected: false,
@@ -428,18 +529,18 @@ const SensorManagementPage: React.FC = () => {
       state: '',
       lga: '',
       ward: '',
-      name: '',
+      community: '',
       ownership: '',
       storage_capacity: '',
       flowRate: '',
-      pumpingRate: '',
-      boreholeDepth: '',
+      pumping_rate: '',
+      borehole_depth: '',
       borehole_type: '',
       beneficiaries: '',
-      commissionDate: '',
-      aquiferType: '',
-      assignedAgent: '',
-      phoneNo: ''
+      commission_date: '',
+      aquifer_type: '',
+      assigned_agent: '',
+      phone_num: ''
     });
     setSelectedSensor(null);
   };
@@ -454,6 +555,32 @@ const SensorManagementPage: React.FC = () => {
     setViewMode('list');
   };
 
+  // ============ END OF MISSING FUNCTIONS ============
+
+  // Status badge component
+const StatusBadge = ({ status }: { status: string }) => {
+  // Check if status includes 'warning' (case insensitive)
+  const isWarning = status?.toLowerCase().includes('warning');
+  
+  // Define color schemes
+  const colors = {
+    Active: 'bg-green-100 text-green-800',
+    Inactive: 'bg-red-100 text-red-800',
+    Warning: 'bg-yellow-50 border-red-200 text-yellow-600'
+  };
+  
+  // Determine which style to use
+  const colorClass = isWarning 
+    ? colors.Warning 
+    : colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+  
+  return (
+    <span className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}>
+      {status}
+    </span>
+  );
+};
+
   // Pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -461,20 +588,6 @@ const SensorManagementPage: React.FC = () => {
   const totalPages = Math.ceil(filteredSensors.length / itemsPerPage);
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
-
-  // Status badge component
-  const StatusBadge = ({ status }: { status: string }) => {
-    const colors = {
-      Active: 'bg-green-100 text-green-800',
-      Inactive: 'bg-red-100 text-red-800',
-      warning: 'bg-yellow-100 text-yellow-800'
-    };
-    return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800'}`}>
-        {status}
-      </span>
-    );
-  };
 
   return (
     <div 
@@ -494,8 +607,8 @@ const SensorManagementPage: React.FC = () => {
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Sensor Management</h1>
-                <p className="text-sm text-gray-500">Manage and monitor all sensors</p>
+                <h1 className="text-xl font-bold text-gray-900">Facilities Management</h1>
+                <p className="text-sm text-gray-500">Manage and monitor all facilities and there sensors</p>
               </div>
             </div>
 
@@ -601,7 +714,7 @@ const SensorManagementPage: React.FC = () => {
                   <div className="relative flex-1 md:min-w-[300px]">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
-                      placeholder="Search by name, serial #, location, agent..."
+                      placeholder="Search by community, serial #, location, agent..."
                       className="pl-9"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -625,7 +738,7 @@ const SensorManagementPage: React.FC = () => {
                     <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                   </Button>
 
-                  {/* Add Button */}
+                  {/* Add Button - Now handleAddNew is defined */}
                   <Button onClick={handleAddNew} className="bg-blue-600 hover:bg-blue-700">
                     <Plus className="w-4 h-4 mr-2" />
                     Add New
@@ -634,8 +747,8 @@ const SensorManagementPage: React.FC = () => {
               </div>
             </CardHeader>
             <CardContent>
-              {loading && !sensors.length ? (
-                <div className="text-center py-8">
+              {loading ? (
+                <div className="text-center py-12">
                   <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
                   <p className="text-gray-500">Loading sensors...</p>
                 </div>
@@ -657,142 +770,133 @@ const SensorManagementPage: React.FC = () => {
                 </div>
               ) : (
                 <>
-                  {/* Table - Enhanced Version */}
-<div className="w-full">
-  {/* Show number of sensors */}
-  <div className="mb-2 text-sm text-gray-500 flex justify-between items-center">
-    <span>Showing {filteredSensors.length} sensors</span>
-  </div>
-
-  {/* Table container with horizontal scroll */}
-  <div className="w-full overflow-x-auto border rounded-lg">  
-    <table className="w-full min-w-[1800px] lg:min-w-full divide-y divide-gray-200">
-      <thead className="bg-gray-50">
-        <tr>
-          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-            Name
-          </th>
-          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-            Serial #
-          </th>
-          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-            Status
-          </th>
-          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-            Flow Rate
-          </th>
-          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-            LGA
-          </th>
-          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-            Agent
-          </th>
-          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-            Phone
-          </th>
-          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-            Actions
-          </th>
-        </tr>
-      </thead>
-      <tbody className="bg-white divide-y divide-gray-200">
-        {currentItems.map((sensor) => (
-          <tr key={sensor.id} className="hover:bg-gray-50 transition-colors">
-            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-              {sensor.name}
-            </td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
-              {sensor.id}
-            </td>
-            <td className="px-6 py-4 whitespace-nowrap">
-              <StatusBadge status={sensor.status} />
-            </td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {sensor.flowRate || 0} m³/h
-            </td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {sensor.lga || '-'}
-            </td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {sensor.assignedAgent || '-'}
-            </td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {sensor.phone_no || '-'}
-            </td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleView(sensor)}
-                  className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                  title="View Details"
-                >
-                  <Eye className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleEdit(sensor)}
-                  className="text-green-600 hover:text-green-800 hover:bg-green-50"
-                  title="Edit"
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleDelete(sensor.id)}
-                  className="text-red-600 hover:text-red-800 hover:bg-red-50"
-                  title="Delete"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-
-  {/* Empty state */}
-  {currentItems.length === 0 && (
-    <div className="text-center py-12">
-      <p className="text-gray-500">No sensors to display</p>
-    </div>
-  )}
-</div>
-
-                  {/* Pagination */}
-                  {totalPages > 1 && (
-                    <div className="flex items-center justify-between mt-4">
-                      <div className="text-sm text-gray-500">
-                        Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredSensors.length)} of {filteredSensors.length} sensors
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => paginate(currentPage - 1)}
-                          disabled={currentPage === 1}
-                        >
-                          <ChevronLeft className="w-4 h-4" />
-                        </Button>
-                        <span className="text-sm">
-                          Page {currentPage} of {totalPages}
-                        </span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => paginate(currentPage + 1)}
-                          disabled={currentPage === totalPages}
-                        >
-                          <ChevronRight className="w-4 h-4" />
-                        </Button>
-                      </div>
+                  {/* Table */}
+                  <div className="w-full">
+                    <div className="mb-2 text-sm text-gray-500 flex justify-between items-center">
+                      <span>Showing {filteredSensors.length} sensors</span>
                     </div>
-                  )}
+
+                    <div className="w-full overflow-x-auto border rounded-lg">  
+                      <table className="w-full min-w-[1800px] lg:min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                              Name
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                              Serial #
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                              Status
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                              Flow Rate
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                              LGA
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                              Agent
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                              Phone
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                              Actions
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {currentItems.map((sensor) => (
+                            <tr key={sensor.id} className="hover:bg-gray-50 transition-colors">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {sensor.community || 'N/A'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
+                                {sensor.id || 'N/A'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <StatusBadge status={sensor.status} />
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {sensor.flowRate || 0} m³/h
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {sensor.lga || '-'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {sensor.assigned_agent || '-'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {sensor.phone_no || '-'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleView(sensor)}
+                                    className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                                    title="View Details"
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleEdit(sensor)}
+                                    className="text-green-600 hover:text-green-800 hover:bg-green-50"
+                                    title="Edit"
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDelete(sensor.id)}
+                                    className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                                    title="Delete"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                      <div className="flex items-center justify-between mt-4">
+                        <div className="text-sm text-gray-500">
+                          Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredSensors.length)} of {filteredSensors.length} sensors
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => paginate(currentPage - 1)}
+                            disabled={currentPage === 1}
+                          >
+                            <ChevronLeft className="w-4 h-4" />
+                          </Button>
+                          <span className="text-sm">
+                            Page {currentPage} of {totalPages}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => paginate(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                          >
+                            <ChevronRight className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </>
               )}
             </CardContent>
@@ -812,7 +916,7 @@ const SensorManagementPage: React.FC = () => {
                 ) : (
                   <>
                     <Edit className="w-5 h-5 text-blue-600" />
-                    Edit Sensor: {selectedSensor?.name}
+                    Edit Sensor: {selectedSensor?.community}
                   </>
                 )}
               </CardTitle>
@@ -825,21 +929,20 @@ const SensorManagementPage: React.FC = () => {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="serialNumber">
+                      <Label htmlFor="serial_number">
                         Serial Number <span className="text-red-500">*</span>
                       </Label>
                       <div className="relative">
                         <Hash className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
                         <Input
-                          id="serialNumber"
-                          name="serialNumber"
+                          id="serial_number"
+                          name="serial_number"
                           placeholder="e.g., S01T01D001"
                           className="pl-9"
-                          value={formData.serialNumber}
+                          value={formData.serial_number}
                           onChange={handleChange}
                           required
                           disabled={viewMode === 'edit'}
-                          title="Serial number will be used as the document ID"
                         />
                       </div>
                       {viewMode === 'edit' ? (
@@ -861,24 +964,22 @@ const SensorManagementPage: React.FC = () => {
                           value={formData.sensorID}
                           onChange={handleChange}
                           required
-                          title="Enter sensor ID"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <Label htmlFor="phoneNo">Phone No <span className="text-red-500">*</span></Label>
+                      <Label htmlFor="phone_num">Phone No <span className="text-red-500">*</span></Label>
                       <div className="relative">
                         <Phone className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
                         <Input
-                          id="phoneNo"
-                          name="phoneNo"
+                          id="phone_num"
+                          name="phone_num"
                           placeholder="e.g., +2348123456789"
                           className="pl-9"
-                          value={formData.phoneNo}
+                          value={formData.phone_num}
                           onChange={handleChange}
                           required
-                          title="Enter contact phone number"
                         />
                       </div>
                     </div>
@@ -899,7 +1000,6 @@ const SensorManagementPage: React.FC = () => {
                         value={formData.state}
                         onChange={handleChange}
                         required
-                        title="Enter state name"
                       />
                     </div>
 
@@ -912,7 +1012,6 @@ const SensorManagementPage: React.FC = () => {
                         value={formData.lga}
                         onChange={handleChange}
                         required
-                        title="Enter Local Government Area"
                       />
                     </div>
 
@@ -925,20 +1024,18 @@ const SensorManagementPage: React.FC = () => {
                         value={formData.ward}
                         onChange={handleChange}
                         required
-                        title="Enter ward name"
                       />
                     </div>
 
                     <div>
-                      <Label htmlFor="name">Community</Label>
+                      <Label htmlFor="community">Community</Label>
                       <Input
                         id="name"
                         name="name"
                         placeholder="e.g., GRA"
-                        value={formData.name}
+                        value={formData.community}
                         onChange={handleChange}
                         required
-                        title="Enter community name"
                       />
                     </div>
 
@@ -953,7 +1050,6 @@ const SensorManagementPage: React.FC = () => {
                         value={formData.location.lat === 0 ? '' : formData.location.lat}
                         onChange={handleChange}
                         required
-                        title="Enter latitude coordinate"
                       />
                     </div>
 
@@ -968,7 +1064,6 @@ const SensorManagementPage: React.FC = () => {
                         value={formData.location.lng === 0 ? '' : formData.location.lng}
                         onChange={handleChange}
                         required
-                        title="Enter longitude coordinate"
                       />
                     </div>
                   </div>
@@ -980,20 +1075,19 @@ const SensorManagementPage: React.FC = () => {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="boreholeDepth">Borehole Depth (m)</Label>
+                      <Label htmlFor="borehole_depth">Borehole Depth (m)</Label>
                       <div className="relative">
                         <Ruler className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
                         <Input
-                          id="boreholeDepth"
-                          name="boreholeDepth"
+                          id="borehole_depth"
+                          name="borehole_depth"
                           type="number"
                           step="0.1"
                           placeholder="0.0"
                           className="pl-9"
-                          value={formData.boreholeDepth}
+                          value={formData.borehole_depth}
                           onChange={handleChange}
                           required
-                          title="Enter borehole depth in meters"
                         />
                       </div>
                     </div>
@@ -1007,20 +1101,18 @@ const SensorManagementPage: React.FC = () => {
                         value={formData.borehole_type}
                         onChange={handleChange}
                         required
-                        title="Enter borehole type"
                       />
                     </div>
 
                     <div>
-                      <Label htmlFor="aquiferType">Aquifer Type</Label>
+                      <Label htmlFor="aquifer_type">Aquifer Type</Label>
                       <Input
-                        id="aquiferType"
-                        name="aquiferType"
+                        id="aquifer_type"
+                        name="aquifer_type"
                         placeholder="e.g., Confined, Unconfined"
-                        value={formData.aquiferType}
+                        value={formData.aquifer_type}
                         onChange={handleChange}
                         required
-                        title="Enter aquifer type"
                       />
                     </div>
 
@@ -1038,7 +1130,6 @@ const SensorManagementPage: React.FC = () => {
                           value={formData.storage_capacity}
                           onChange={handleChange}
                           required
-                          title="Enter storage capacity in cubic meters"
                         />
                       </div>
                     </div>
@@ -1064,44 +1155,26 @@ const SensorManagementPage: React.FC = () => {
                           value={formData.flowRate}
                           onChange={handleChange}
                           required
-                          title="Enter flow rate in cubic meters per hour"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <Label htmlFor="pumpingRate">Pumping Rate (m³/h)</Label>
+                      <Label htmlFor="pumping_rate">Pumping Rate (m³/h)</Label>
                       <div className="relative">
                         <Gauge className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
                         <Input
-                          id="pumpingRate"
-                          name="pumpingRate"
+                          id="pumping_rate"
+                          name="pumping_rate"
                           type="number"
                           step="0.1"
                           placeholder="0.0"
                           className="pl-9"
-                          value={formData.pumpingRate}
+                          value={formData.pumping_rate}
                           onChange={handleChange}
                           required
-                          title="Enter pumping rate in cubic meters per hour"
                         />
                       </div>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="tankLevel">Tank Level (%)</Label>
-                      <Input
-                        id="tankLevel"
-                        name="tankLevel"
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="1"
-                        placeholder="0"
-                        value={formData.tankLevel}
-                        onChange={handleChange}
-                        title="Enter tank level percentage"
-                      />
                     </div>
                   </div>
                 </div>
@@ -1123,7 +1196,6 @@ const SensorManagementPage: React.FC = () => {
                           value={formData.ownership}
                           onChange={handleChange}
                           required
-                          title="Enter ownership type"
                         />
                       </div>
                     </div>
@@ -1141,59 +1213,40 @@ const SensorManagementPage: React.FC = () => {
                           value={formData.beneficiaries}
                           onChange={handleChange}
                           required
-                          title="Enter number of beneficiaries"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <Label htmlFor="assignedAgent">Assigned Agent</Label>
+                      <Label htmlFor="assigned_agent">Assigned Agent</Label>
                       <div className="relative">
                         <UserCircle className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
                         <Input
-                          id="assignedAgent"
-                          name="assignedAgent"
+                          id="assigned_agent"
+                          name="assigned_agent"
                           placeholder="e.g., John Doe"
                           className="pl-9"
-                          value={formData.assignedAgent}
+                          value={formData.assigned_agent}
                           onChange={handleChange}
                           required
-                          title="Enter assigned agent name"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <Label htmlFor="commissionDate">Commission Date</Label>
+                      <Label htmlFor="commission_date">Commission Date</Label>
                       <div className="relative">
                         <Calendar className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
                         <Input
-                          id="commissionDate"
-                          name="commissionDate"
+                          id="commission_date"
+                          name="commission_date"
                           type="date"
                           className="pl-9"
-                          value={formData.commissionDate}
+                          value={formData.commission_date}
                           onChange={handleChange}
                           required
-                          title="Select commission date"
                         />
                       </div>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="status">Status</Label>
-                      <select
-                        id="status"
-                        name="status"
-                        className="w-full px-3 py-2 border rounded-md"
-                        value={formData.status}
-                        onChange={(e) => setFormData({...formData, status: e.target.value as 'Active' | 'Inactive' | 'warning'})}
-                        required
-                      >
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                        <option value="warning">Warning</option>
-                      </select>
                     </div>
                   </div>
                 </div>
@@ -1243,7 +1296,7 @@ const SensorManagementPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <Eye className="w-5 h-5 text-blue-600" />
-                  Sensor Details: {selectedSensor.name}
+                  Sensor Details: {selectedSensor.community}
                 </CardTitle>
                 <Button variant="ghost" size="sm" onClick={() => setViewMode('list')}>
                   <X className="w-4 h-4" />
@@ -1257,7 +1310,7 @@ const SensorManagementPage: React.FC = () => {
                   <dl className="space-y-2">
                     <div className="flex">
                       <dt className="w-32 text-sm text-gray-500">Name:</dt>
-                      <dd className="text-sm text-gray-900">{selectedSensor.name}</dd>
+                      <dd className="text-sm text-gray-900">{selectedSensor.community}</dd>
                     </div>
                     <div className="flex">
                       <dt className="w-32 text-sm text-gray-500">Serial Number:</dt>
@@ -1295,7 +1348,7 @@ const SensorManagementPage: React.FC = () => {
                     </div>
                     <div className="flex">
                       <dt className="w-32 text-sm text-gray-500">Community:</dt>
-                      <dd className="text-sm text-gray-900">{selectedSensor.name}</dd>
+                      <dd className="text-sm text-gray-900">{selectedSensor.community}</dd>
                     </div>
                     <div className="flex">
                       <dt className="w-32 text-sm text-gray-500">Coordinates:</dt>
@@ -1311,7 +1364,7 @@ const SensorManagementPage: React.FC = () => {
                   <dl className="space-y-2">
                     <div className="flex">
                       <dt className="w-32 text-sm text-gray-500">Borehole Depth:</dt>
-                      <dd className="text-sm text-gray-900">{selectedSensor.boreholeDepth} m</dd>
+                      <dd className="text-sm text-gray-900">{selectedSensor.borehole_depth} m</dd>
                     </div>
                     <div className="flex">
                       <dt className="w-32 text-sm text-gray-500">Borehole Type:</dt>
@@ -1319,7 +1372,7 @@ const SensorManagementPage: React.FC = () => {
                     </div>
                     <div className="flex">
                       <dt className="w-32 text-sm text-gray-500">Aquifer Type:</dt>
-                      <dd className="text-sm text-gray-900">{selectedSensor.aquiferType}</dd>
+                      <dd className="text-sm text-gray-900">{selectedSensor.aquifer_type}</dd>
                     </div>
                     <div className="flex">
                       <dt className="w-32 text-sm text-gray-500">Storage Capacity:</dt>
@@ -1341,7 +1394,7 @@ const SensorManagementPage: React.FC = () => {
                     </div>
                     <div className="flex">
                       <dt className="w-32 text-sm text-gray-500">Pumping Rate:</dt>
-                      <dd className="text-sm text-gray-900">{selectedSensor.pumpingRate} m³/h</dd>
+                      <dd className="text-sm text-gray-900">{selectedSensor.pumping_rate} m³/h</dd>
                     </div>
                     <div className="flex">
                       <dt className="w-32 text-sm text-gray-500">Has Flow:</dt>
@@ -1371,11 +1424,11 @@ const SensorManagementPage: React.FC = () => {
                     </div>
                     <div className="flex">
                       <dt className="w-32 text-sm text-gray-500">Assigned Agent:</dt>
-                      <dd className="text-sm text-gray-900">{selectedSensor.assignedAgent}</dd>
+                      <dd className="text-sm text-gray-900">{selectedSensor.assigned_agent}</dd>
                     </div>
                     <div className="flex">
                       <dt className="w-32 text-sm text-gray-500">Commission Date:</dt>
-                      <dd className="text-sm text-gray-900">{selectedSensor.commissionDate}</dd>
+                      <dd className="text-sm text-gray-900">{selectedSensor.commission_date}</dd>
                     </div>
                   </dl>
                 </div>

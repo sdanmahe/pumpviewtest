@@ -28,7 +28,7 @@ const sensorStatus = isThreeOrMoreDaysAgo ? 'Inactive' : 'Active';
 // Function to get status color classes
 const getStatusColor = (status: string) => {
   switch (status) {
-    case 'warning':
+    case 'Warning':
       return 'bg-yellow-100 text-yellow-800 border-yellow-200';
     case 'Active':
       return 'bg-green-100 text-green-800 border-green-200';
@@ -69,21 +69,21 @@ const getStatusColor = (status: string) => {
               <p className="text-xs text-gray-500">ID: {sensor.id}</p>
             </div>
           </div>
-          <Badge variant="outline" className={getStatusColor(sensor.status.includes('warning')? 'warning': sensorStatus)}>
-            {sensor.status.includes('warning')? 'warning': sensorStatus}
+          <Badge variant="outline" className={getStatusColor(sensor.status?.includes('Warning')? 'Warning': sensorStatus)}>
+            {sensor.status?.includes('Warning')? 'Warning': sensorStatus}
           </Badge>
         </div>
       </CardHeader>
 
       <CardContent className="pt-0">
         {/* Flow Status - Main Indicator */}
-        <div className={`p-3 rounded-lg border mb-3 ${sensor.status.includes('warning')? 'bg-yellow-50 border-red-200 text-yellow-600' : getFlowStatusColor(sensor.flowDetected)}`}>
+        <div className={`p-3 rounded-lg border mb-3 ${sensor.status?.includes('Warning')? 'bg-yellow-50 border-red-200 text-yellow-600' : getFlowStatusColor(sensor.flowDetected)}`}>
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4" />
             <span className="font-medium text-sm">
               {sensor.flowDetected 
-                ?sensor.status.includes('warning')? sensor.status: 'Water flow detected within 24 hours' 
-                : sensor.status.includes('warning')? sensor.status: 'No water flow in last 24 hours'}
+                ?sensor.status?.includes('Warning')? sensor.status: 'Water flow detected within 24 hours' 
+                : sensor.status?.includes('Warning')? sensor.status: 'No water flow in last 24 hours'}
             </span>
           </div>
         </div>
