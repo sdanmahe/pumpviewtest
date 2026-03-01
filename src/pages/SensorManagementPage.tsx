@@ -51,7 +51,7 @@ interface SensorData {
   lastFlowDetected?: Date | null;
   flowDetected?: boolean;
   status: string;
-  tankLevel?: number;
+  tank_level?: number;
   state: string;
   lga: string;
   ward: string;
@@ -86,7 +86,7 @@ interface SensorFormData {
   lastFlowDetected?: Date | null;
   flowDetected?: boolean;
   status: string;
-  tankLevel: string;
+  tank_level: string;
   state: string;
   lga: string;
   ward: string;
@@ -134,7 +134,7 @@ const SensorManagementPage: React.FC = () => {
     lastFlowDetected: new Date(Date.now() - 1000 * 60 * 30),
     flowDetected: false,
     status: 'Inactive',
-    tankLevel: '',
+    tank_level: '',
     state: '',
     lga: '',
     ward: '',
@@ -248,7 +248,7 @@ const SensorManagementPage: React.FC = () => {
           hasFlow: Boolean(data.hasFlow || data.flowDetected || false),
           
           // Technical specs
-          tankLevel: getNumberValue(data.tankLevel || data.tank_level || 0),
+          tank_level: getNumberValue(data.tank_level || data.tank_level || 0),
           borehole_depth: getNumberValue(data.borehole_depth || data.borehole_depth || 0),
           borehole_type: getStringValue(data.borehole_type || data.boreholeType || ''),
           aquifer_type: getStringValue(data.aquifer_type || data.aquifer_type || ''),
@@ -275,7 +275,7 @@ const SensorManagementPage: React.FC = () => {
           
           // Device metrics
           batteryLevel: getNumberValue(data.batteryLevel || 100),
-          signalStrength: getNumberValue(data.signalStrength || 100)
+          signalStrength: getNumberValue(data.signalStrength || 100),
         };
         
         sensorsData.push(sensor);
@@ -425,7 +425,7 @@ const SensorManagementPage: React.FC = () => {
         status: status,
         lastFlowDetected: new Date(Date.now() - 1000 * 60 * 30),
         hasFlow: parseFloat(formData.flowRate) > 0,
-        tankLevel: parseFloat(formData.tankLevel) || 0,
+        tank_level: parseFloat(formData.tank_level) || 0,
         signalStrength: 100,
         state: formData.state.trim(),
         lga: formData.lga.trim(),
@@ -491,7 +491,7 @@ const SensorManagementPage: React.FC = () => {
       lastFlowDetected: sensor.lastFlowDetected || new Date(Date.now() - 1000 * 60 * 30),
       flowDetected: sensor.flowDetected || false,
       status: sensor.status || 'Inactive',
-      tankLevel: sensor.tankLevel?.toString() || '',
+      tank_level: sensor.tank_level?.toString() || '',
       state: sensor.state || '',
       lga: sensor.lga || '',
       ward: sensor.ward || '',
@@ -525,7 +525,7 @@ const SensorManagementPage: React.FC = () => {
       lastFlowDetected: new Date(Date.now() - 1000 * 60 * 30),
       flowDetected: false,
       status: 'Inactive',
-      tankLevel: '',
+      tank_level: '',
       state: '',
       lga: '',
       ward: '',
@@ -1380,7 +1380,7 @@ const StatusBadge = ({ status }: { status: string }) => {
                     </div>
                     <div className="flex">
                       <dt className="w-32 text-sm text-gray-500">Tank Level:</dt>
-                      <dd className="text-sm text-gray-900">{selectedSensor.tankLevel || 0}%</dd>
+                      <dd className="text-sm text-gray-900">{selectedSensor.tank_level || 0}%</dd>
                     </div>
                   </dl>
                 </div>

@@ -23,13 +23,13 @@ const isThreeOrMoreDaysAgo = sensor.lastFlowDetected
   : 'Never'; // If no lastFlowDetected, consider it inactive or handle as needed
 
 // Set sensor status based on flow detection age
-const sensorStatus = isThreeOrMoreDaysAgo ? 'Inactive' : 'Active';
+sensor.lastknownStat = isThreeOrMoreDaysAgo ? 'Inactive' : 'Active';
+
+
 
 // Function to get status color classes
 const getStatusColor = (status: string) => {
   switch (status) {
-    case 'Warning':
-      return 'bg-yellow-100 text-yellow-800 border-yellow-200';
     case 'Active':
       return 'bg-green-100 text-green-800 border-green-200';
     case 'Inactive':
@@ -69,8 +69,8 @@ const getStatusColor = (status: string) => {
               <p className="text-xs text-gray-500">ID: {sensor.id}</p>
             </div>
           </div>
-          <Badge variant="outline" className={getStatusColor(sensor.status?.includes('Warning')? 'Warning': sensorStatus)}>
-            {sensor.status?.includes('Warning')? 'Warning': sensorStatus}
+          <Badge variant="outline" className={getStatusColor(sensor.status?.includes('Warning')? 'Warning': sensor.lastknownStat)}>
+            {sensor.status?.includes('Warning')? 'Warning': sensor.lastknownStat}
           </Badge>
         </div>
       </CardHeader>

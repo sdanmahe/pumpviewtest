@@ -17,7 +17,8 @@ const DEMO_SENSORS: SensorData[] = [
     lga: 'Yabo',
     ownership: 'GHI/USAID',
     type: 'Solar Powered',
-    capacity: '15m3'
+    capacity: '15m3',
+    lastknownStat: 'Active'
   },
   {
     id: 'S01T02D001',
@@ -31,7 +32,8 @@ const DEMO_SENSORS: SensorData[] = [
     lga: 'Yabo',
     ownership: 'GHI/USAID',
     type: 'Solar Powered',
-    capacity: '15m3'
+    capacity: '15m3',
+    lastknownStat: 'Active'
   },
   {
     id: 'sensor-003',
@@ -39,13 +41,14 @@ const DEMO_SENSORS: SensorData[] = [
     location: { lat: 12.1810, lng: 4.0926 },
     lastFlowDetected: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
     flowDetected: true,
-    status: 'warning',
+    status: 'Warning',
     tank_level: 45,
     state: 'Sokoto',
     lga: 'Yabo',
     ownership: 'GHI/USAID',
     type: 'Solar Powered',
     capacity: '15m3',
+    lastknownStat: 'Active'
   },
 ];
 
@@ -108,7 +111,8 @@ export function useSensors() {
               lga: data.lga,
               ownership: data.ownership,
               type: data.borehole_type,
-              capacity: data.storage_capacity
+              capacity: data.storage_capacity,
+              lastknownStat: 'Active'
             });
           });
 
@@ -162,7 +166,8 @@ export function useSensors() {
           lga: data.lga,
           ownership: data.ownership,
           type: data.borehole_type,
-          capacity: data.storage_capacity
+          capacity: data.storage_capacity,
+          lastknownStat: 'Active'
         });
       });
 
