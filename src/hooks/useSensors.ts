@@ -95,7 +95,7 @@ export function useSensors() {
             
             sensorsData.push({
               id: doc.id,
-              name: data.name || `Sensor ${doc.id}`,
+              community: data.community || `Sensor ${doc.id}`,
               location: {
                 lat: data.location?.lat || 0,
                 lng: data.location?.lng || 0,
@@ -103,10 +103,10 @@ export function useSensors() {
               lastFlowDetected: lastFlowDate,
               flowDetected: checkFlowInLast24Hours(lastFlowDate),
               status: data.status,
-              tankLevel: data.tankLevel,
+              tank_level: data.tankLevel,
               state: data.state,
               lga: data.lga,
-              owner: data.ownership,
+              ownership: data.ownership,
               type: data.borehole_type,
               capacity: data.storage_capacity
             });

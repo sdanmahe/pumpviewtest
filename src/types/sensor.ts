@@ -1,6 +1,6 @@
 export interface SensorData {
   id: string;
-  name: string;
+  community: string;
   location: {
     lat: number;
     lng: number;
@@ -8,10 +8,10 @@ export interface SensorData {
   lastFlowDetected: Date | null;
   flowDetected: boolean;
   status: 'Active' | 'Inactive' | 'warning';
-  tankLevel: number;
+  tank_level: number;
   state: string;
   lga: string;
-  owner: String;
+  ownership: String;
   type: String;
   capacity: String;
 }

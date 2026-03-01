@@ -65,7 +65,7 @@ const getStatusColor = (status: string) => {
               <Droplets className={`w-5 h-5 ${sensor.flowDetected ? 'text-blue-600' : 'text-gray-500'}`} />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">{sensor.name + `  (${sensor.state} State/${sensor.lga} LGA)`}</h3>
+              <h3 className="font-semibold text-gray-900">{sensor.community + `  (${sensor.state} State/${sensor.lga} LGA)`}</h3>
               <p className="text-xs text-gray-500">ID: {sensor.id}</p>
             </div>
           </div>
@@ -101,10 +101,10 @@ const getStatusColor = (status: string) => {
           </div>
 
           {/* Cylinder */}
-          {sensor.tankLevel !== undefined && (
+          {sensor.tank_level !== undefined && (
             <div className="flex items-center gap-2 text-gray-600">
-              <Cylinder className={`w-4 h-4 ${getBatteryColor(sensor.tankLevel)}`} />
-              <span>{sensor.tankLevel}%</span>
+              <Cylinder className={`w-4 h-4 ${getBatteryColor(sensor.tank_level)}`} />
+              <span>{sensor.tank_level}%</span>
             </div>
           )}
 
