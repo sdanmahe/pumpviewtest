@@ -3,8 +3,7 @@ import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import LandingPage from '@/pages/LandingPage';
 import Dashboard from '@/sections/Dashboard';
-// Remove AddSensorPage import
-// import AddSensorPage from '@/pages/AddSensorPage';
+
 import LoginPage from '@/pages/LoginPage';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import SensorManagementPage from '@/pages/SensorManagementPage';

@@ -15,7 +15,12 @@ export interface SensorData {
   type: String;
   capacity: String;
   lastknownStat: string;
+ 
 }
+
+export const globalStatus = {
+  global_status: 'Inactive',
+};
 
 export interface FirestoreSensorReading {
   sensorId: string;

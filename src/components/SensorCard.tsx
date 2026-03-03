@@ -1,5 +1,5 @@
 import React from 'react';
-import type { SensorData } from '@/types/sensor';
+import  {type SensorData } from '@/types/sensor';
 import { Droplets, Clock, Cylinder, MapPin, Activity } from 'lucide-react';
 import { formatDistanceToNow, differenceInDays } from 'date-fns';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -26,10 +26,11 @@ const isThreeOrMoreDaysAgo = sensor.lastFlowDetected
 sensor.lastknownStat = isThreeOrMoreDaysAgo ? 'Inactive' : 'Active';
 
 
-
 // Function to get status color classes
 const getStatusColor = (status: string) => {
   switch (status) {
+    case 'Warning':
+       return 'bg-yellow-50 border-red-200 text-yellow-600';
     case 'Active':
       return 'bg-green-100 text-green-800 border-green-200';
     case 'Inactive':

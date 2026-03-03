@@ -38,6 +38,9 @@ import { db } from '@/config/firebase';
 import { collection, getDocs, setDoc, deleteDoc, doc, query, orderBy, where } from 'firebase/firestore';
 import pumpviwBG from '@/assets/pumpview_bg.png';
 import { useAuth } from '@/contexts/AuthContext';
+import { formatDistanceToNow, differenceInDays } from 'date-fns';
+
+
 
 // Interface matching the updated AddSensorPage data structure
 interface SensorData {
@@ -48,7 +51,7 @@ interface SensorData {
     lat: number;
     lng: number;
   };
-  lastFlowDetected?: Date | null;
+  lastFlowDetected?: string;
   flowDetected?: boolean;
   status: string;
   tank_level?: number;
@@ -83,7 +86,7 @@ interface SensorFormData {
     lat: number;
     lng: number;
   };
-  lastFlowDetected?: Date | null;
+  lastFlowDetected?: string;
   flowDetected?: boolean;
   status: string;
   tank_level: string;
@@ -131,7 +134,7 @@ const SensorManagementPage: React.FC = () => {
     sensorID: '',
     serial_number: '',
     location: { lat: 0, lng: 0 },
-    lastFlowDetected: new Date(Date.now() - 1000 * 60 * 30),
+    lastFlowDetected:'',
     flowDetected: false,
     status: 'Inactive',
     tank_level: '',
@@ -151,6 +154,7 @@ const SensorManagementPage: React.FC = () => {
     assigned_agent: '',
     phone_num: ''
   });
+  
 
   // Fetch sensors on component mount
   useEffect(() => {
@@ -193,13 +197,113 @@ const SensorManagementPage: React.FC = () => {
     return isNaN(parsed) ? 0 : parsed;
   };
 
-  // Helper function to safely get status
-  const getValidStatus = (status: any): 'Active' | 'Inactive' | 'Warning' => {
-    if (status === 'Active') return 'Active';
-    if (status?.includes('Warning')) return status;
+
+const formatLastFlow = (timestamp: any, format: 'short' | 'long' | 'relative' = 'long'): string => {
+  if (!timestamp) return 'N/A';
+  
+  try {
+    let date: Date;
     
-    return 'Inactive'; // Default
-  };
+    // Handle different timestamp types
+    if (timestamp && typeof timestamp === 'object') {
+      // Firebase Timestamp
+      if ('seconds' in timestamp) {
+        date = new Date(timestamp.seconds * 1000);
+      }
+      // Firestore Timestamp (might have toDate method)
+      else if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+        date = timestamp.toDate();
+      }
+      // Regular Date object
+      else if (timestamp instanceof Date) {
+        date = timestamp;
+      }
+      else {
+        return 'N/A';
+      }
+    }
+    // String or number
+    else {
+      date = new Date(timestamp);
+    }
+    
+    // Validate date
+    if (isNaN(date.getTime())) {
+      console.log('Invalid date:', timestamp);
+      return 'N/A';
+    }
+    
+    // Format based on preference
+    switch (format) {
+      case 'short':
+        return date.toLocaleDateString();
+      case 'long':
+        return date.toLocaleString();
+      case 'relative':
+        return formatDistanceToNow(date, { addSuffix: true });
+      default:
+        return date.toLocaleString();
+    }
+    
+  } catch (error) {
+    console.error('Error formatting timestamp:', error);
+    return 'N/A';
+  }
+};
+
+ 
+  // Helper function to safely get status from Firebase Timestamp
+const getValidStatus = (lastFlowTimeFB: any, fb_status: string): string => {
+  console.log('Raw lastFlowTimeFB value:', lastFlowTimeFB);
+  console.log(fb_status);
+  if (!lastFlowTimeFB) return 'Inactive';
+  
+  try {
+    let date: Date;
+    
+    // Check if it's a Firebase Timestamp (has seconds property)
+    if (lastFlowTimeFB && typeof lastFlowTimeFB === 'object' && 'seconds' in lastFlowTimeFB) {
+      // Convert Firebase Timestamp to Date (seconds to milliseconds)
+      date = new Date(lastFlowTimeFB.seconds * 1000);
+      console.log('Converted Firebase Timestamp to Date:', date);
+    }
+    // Check if it's already a Date object
+    else if (lastFlowTimeFB instanceof Date) {
+      date = lastFlowTimeFB;
+    }
+    // Check if it's a string or number
+    else if (typeof lastFlowTimeFB === 'string' || typeof lastFlowTimeFB === 'number') {
+      date = new Date(lastFlowTimeFB);
+    }
+    else {
+      console.log('Unhandled date type:', lastFlowTimeFB);
+      return 'Inactive';
+    }
+    
+    // Validate the date
+    if (isNaN(date.getTime())) {
+      console.log('Invalid date after conversion');
+      return 'Inactive';
+    }
+    
+    // Calculate days difference
+    const today = new Date();
+    console.log(formatDistanceToNow(date));
+    const daysDiff = differenceInDays(today, date);
+    console.log('Days difference:', daysDiff);
+    if(fb_status?.toLowerCase().includes('warning')) return fb_status;
+    return daysDiff >= 3 ? 'Inactive' : 'Active';
+    
+  } catch (error) {
+    console.error('Error processing date:', error);
+    return 'Inactive';
+  }
+  
+};
+
+
+
+
 
   const fetchSensors = async () => {
     setLoading(true);
@@ -207,20 +311,20 @@ const SensorManagementPage: React.FC = () => {
     
     try {
       const collectionName = import.meta.env.VITE_FIREBASE_COLLECTION_NAME || 'sensors';
-      console.log('Fetching from collection:', collectionName);
+    //  console.log('Fetching from collection:', collectionName);
       
       const sensorsRef = collection(db, collectionName);
       const q = query(sensorsRef, orderBy('community'));
       const querySnapshot = await getDocs(q);
       
-      console.log('Number of documents found:', querySnapshot.size);
+     // console.log('Number of documents found:', querySnapshot.size);
       
       const sensorsData: SensorData[] = [];
-      
+
       querySnapshot.forEach((doc) => {
         const data = doc.data();
-        console.log('Document ID:', doc.id);
-        console.log('Document data:', data);
+      //  console.log('Document ID:', doc.id);
+     //   console.log('Document data:', data);
         
         // Map the data with safe fallbacks
         const sensor: SensorData = {
@@ -229,7 +333,7 @@ const SensorManagementPage: React.FC = () => {
           sensorID: getStringValue(data.sensorID || data.sensor_id || ''),
           
           // Name - try different possible field names
-          community: getStringValue(data.community || data.communityName || data.community || data.siteName || 'Unnamed Sensor'),
+          community: getStringValue(data.community || data.communityName || data.community || data.siteName || data.name || 'Unnamed Sensor'),
           
           // Location
           location: {
@@ -238,10 +342,10 @@ const SensorManagementPage: React.FC = () => {
           },
           
           // Status - ensure valid value
-          status: getValidStatus(data.status),
+          status: getValidStatus(data.lastFlowDetected, data.status),
           
           // Flow related
-          lastFlowDetected: data.lastFlowDetected ? new Date(data.lastFlowDetected) : null,
+          lastFlowDetected: formatLastFlow(data.lastFlowDetected),
           flowDetected: Boolean(data.flowDetected || data.hasFlow || false),
           flowRate: getNumberValue(data.flowRate || data.flow_rate || 0),
           pumping_rate: getNumberValue(data.pumping_rate || data.pumping_rate || 0),
@@ -281,7 +385,7 @@ const SensorManagementPage: React.FC = () => {
         sensorsData.push(sensor);
       });
       
-      console.log('Final mapped sensors data:', sensorsData);
+    //  console.log('Final mapped sensors data:', sensorsData);
       setSensors(sensorsData);
       setFilteredSensors(sensorsData);
       
@@ -296,6 +400,8 @@ const SensorManagementPage: React.FC = () => {
       setLoading(false);
     }
   };
+
+  
 
   const applyFilters = () => {
     let filtered = [...sensors];
@@ -487,7 +593,7 @@ const SensorManagementPage: React.FC = () => {
       sensorID: sensor.sensorID || '',
       serial_number: sensor.id,
       location: sensor.location || { lat: 0, lng: 0 },
-      lastFlowDetected: sensor.lastFlowDetected || new Date(Date.now() - 1000 * 60 * 30),
+      lastFlowDetected: formatLastFlow(sensor.lastFlowDetected) || 'N/A',
       flowDetected: sensor.flowDetected || false,
       status: sensor.status || 'Inactive',
       tank_level: sensor.tank_level?.toString() || '',
@@ -521,7 +627,7 @@ const SensorManagementPage: React.FC = () => {
       sensorID: '',
       serial_number: '',
       location: { lat: 0, lng: 0 },
-      lastFlowDetected: new Date(Date.now() - 1000 * 60 * 30),
+      lastFlowDetected: 'N/A',
       flowDetected: false,
       status: 'Inactive',
       tank_level: '',
@@ -708,6 +814,7 @@ const StatusBadge = ({ status }: { status: string }) => {
             <CardHeader>
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <CardTitle>All Sensors</CardTitle>
+                
                 <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
                   {/* Search */}
                   <div className="relative flex-1 md:min-w-[300px]">
@@ -1029,8 +1136,8 @@ const StatusBadge = ({ status }: { status: string }) => {
                     <div>
                       <Label htmlFor="community">Community</Label>
                       <Input
-                        id="name"
-                        name="name"
+                        id="community"
+                        name="community"
                         placeholder="e.g., GRA"
                         value={formData.community}
                         onChange={handleChange}
@@ -1401,9 +1508,7 @@ const StatusBadge = ({ status }: { status: string }) => {
                     <div className="flex">
                       <dt className="w-32 text-sm text-gray-500">Last Flow:</dt>
                       <dd className="text-sm text-gray-900">
-                        {selectedSensor.lastFlowDetected 
-                          ? new Date(selectedSensor.lastFlowDetected).toLocaleString() 
-                          : 'N/A'}
+                        {formatLastFlow(selectedSensor.lastFlowDetected, 'relative')}
                       </dd>
                     </div>
                   </dl>
